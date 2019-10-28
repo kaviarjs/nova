@@ -2,7 +2,7 @@
 import * as _ from "lodash";
 import * as graphqlFields from "graphql-fields";
 import { SPECIAL_PARAM_FIELD, QueryBody } from "../constants";
-import Query from "../query/query";
+import Query from "../query/Query";
 import intersectDeep from "../query/lib/intersectDeep";
 import { Collection } from "mongodb";
 
