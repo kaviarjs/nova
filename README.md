@@ -3,11 +3,11 @@
 [![Build Status](https://api.travis-ci.org/kaviarjs/nova.svg?branch=master)](https://travis-ci.org/kaviarjs/nova)
 [![TypeScript](https://badges.frapsoft.com/typescript/version/typescript-next.svg?v=101)](https://github.com/ellerbrock/typescript-badges/)
 
-_Nova_ is the fetching layer on top of MongoDB Node Driver, which allows SQL-comparable speeds for retrieving relational data. [Read it's history here](./docs/story.md)
+_Nova_ is the fetching layer on top of MongoDB Node Driver, which allows SQL-comparable speeds for retrieving relational data. [Read the whole history here](./docs/story.md)
 
 GraphQL is treated as a first-class citizen, by offering ability to transform the GraphQL query into a Nova query. **You do not have to use GraphQL to use this library**
 
-The incredible speed boost is possible thanks to the technology called Hypernova, created by [Theodor Diaconu](https://www.linkedin.com/in/dtheodor/) in 2016 for Meteor. [Read more](./docs/hypernova.md)
+The incredible speed boost is possible thanks to the technology called Hypernova, created by [Theodor Diaconu](https://www.linkedin.com/in/dtheodor/) in 2016 for Meteor. [Read more about it.](./docs/hypernova.md)
 
 ## What it solves
 
@@ -35,20 +35,21 @@ async function test() {
   const Comments = await db.createCollection("Comments");
 
   oneToMany(Comments, Post, {
+    // will automatically read from postId inside Comments
     linkName: "post",
     inversedLinkName: "comments",
   }); // also available manyToMany and manyToOne
 
   query(Post, {
-      $: {
-          filters: {
-              isApproved: true
-          }
+    $: {
+      filters: {
+        isApproved: true
       }
-      title: 1,
-      comments: {
-          name: 1
-      }
+    }
+    title: 1,
+    comments: {
+      name: 1
+    }
   })
 }
 ```

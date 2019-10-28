@@ -13,7 +13,7 @@ import {
 import * as _ from "lodash";
 import * as mongodb from "mongodb";
 import Linker from "./query/Linker";
-import Query from "./query/query";
+import Query from "./query/Query";
 import astToQuery, { AstToQueryOptions } from "./graphql/astToQuery";
 
 export function enhance(prototype, resolve = ctx => this) {
