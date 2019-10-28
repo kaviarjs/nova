@@ -7,7 +7,7 @@ _Nova_ is the fetching layer on top of MongoDB Node Driver, which allows SQL-com
 
 GraphQL is treated as a first-class citizen, by offering ability to transform the GraphQL query into a Nova query. **You do not have to use GraphQL to use this library**
 
-The incredible speed boost is possible thanks to the technology called `database hypernova`, created by [Theodor Diaconu](https://www.linkedin.com/in/dtheodor/) in 2016 for Meteor. Read more about the [Hypernova](./docs/hypernova.md).
+The incredible speed boost is possible thanks to the technology called Hypernova, created by [Theodor Diaconu](https://www.linkedin.com/in/dtheodor/) in 2016 for Meteor. [Read more](./docs/hypernova.md)
 
 ## What it solves
 
@@ -28,7 +28,7 @@ This provides a learning curve for **Nova** and it explains all the features.
 ## Sample
 
 ```js
-import { query, addLinks } from "@kaviar/nova";
+import { query, oneToMany } from "@kaviar/nova";
 
 async function test() {
   const Post = await db.createCollection("Post");
