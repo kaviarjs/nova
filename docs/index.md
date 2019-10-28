@@ -98,7 +98,7 @@ query(Posts, {
 })
 ```
 
-Using `options.sort`, `options.limit` and `options.skip` inside nested collections is forbidden, and it is explained why in the [Limitations](./limitations.md) section.
+Using `options.sort`, `options.limit` and `options.skip` inside nested collections may have performance impact, and it is explained why in the [Limitations](./limitations.md) section.
 
 #### Linking Shortcuts
 
@@ -195,7 +195,7 @@ const Query = {
         },
 
         // Manipulate the transformed body
-        // Here, you would be able to remove certain fields, or manipulate the body
+        // Here, you would be able to remove certain fields, or manipulate the Nova Query body
         // This happens before creating the nodes, so it gives you a chance to do whatever you wish
         embody(body) {
           // Do whatever you wish to the body.
