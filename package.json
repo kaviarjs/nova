@@ -1,0 +1,65 @@
+{
+  "name": "@kaviar/nova",
+  "version": "1.0.0",
+  "description": "MongoDB Nova is a relational query layer over MongoDB Node Drivers",
+  "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kaviarjs/nova"
+  },
+  "scripts": {
+    "clean": "rimraf dist coverage",
+    "compile": "tsc",
+    "pretest": "npm run compile",
+    "test": "npm run testonly --",
+    "posttest": "npm run lint",
+    "lint": "tslint --project ./tsconfig.json ./src/**/*",
+    "watch": "tsc -w",
+    "testonly": "mocha --reporter spec --full-trace ./dist/__tests__/index.js",
+    "testonly-watch": "mocha  --require source-map-support/register --reporter spec --full-trace ./dist/__tests__/index.js --watch",
+    "coverage": "node ./node_modules/istanbul/lib/cli.js cover _mocha -- --full-trace ./dist/__tests__/index.js",
+    "postcoverage": "remap-istanbul --input coverage/coverage.raw.json --type lcovonly --output coverage/lcov.info",
+    "prepublishOnly": "npm run clean && npm run compile",
+    "gen-doc": "typedoc ./src --out typeDocs --tsconfig tsconfig.json"
+  },
+  "dependencies": {
+    "dot-object": "^1.9.0",
+    "graphql-fields": "^2.0.3",
+    "lodash": "^4.17.15"
+  },
+  "peerDependencies": {
+    "mongodb": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.3",
+    "@types/graphql": "^0.11.3",
+    "@types/lodash": "^4.14.144",
+    "@types/mocha": "^2.2.39",
+    "@types/mongodb": "^3.3.6",
+    "@types/node": "^8.0.28",
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "graphql": "^0.13.0",
+    "graphql-subscriptions": "^1.1.0",
+    "graphql-tag": "^2.10.1",
+    "istanbul": "^1.0.0-alpha.2",
+    "mocha": "^6.1.1",
+    "mongodb": "^3.3.3",
+    "mongodb-core": "^3.2.7",
+    "mongoose": "^5.7.5",
+    "remap-istanbul": "^0.9.1",
+    "rimraf": "^2.6.2",
+    "sinon": "^7.5.0",
+    "sinon-chai": "^2.9.0",
+    "source-map-support": "^0.5.13",
+    "tslint": "^5.2.0",
+    "tslint-config-prettier": "^1.18.0",
+    "typedoc": "^0.15.0",
+    "typescript": "^3.4.2"
+  },
+  "typings": "dist/index.d.ts",
+  "typescript": {
+    "definition": "dist/index.d.ts"
+  },
+  "license": "MIT"
+}
