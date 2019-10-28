@@ -93,4 +93,4 @@ Let's assume we have 100 posts, and the total number of categories is like 4. Hy
 and fetches 100 posts, and 4 categories. If you would have used `JOIN` functionality in SQL, you would have received
 the categories for each post.
 
-Now you understand why this is a revolution for MongoDB and Meteor.
+Now you understand why this is a revolution for MongoDB.
