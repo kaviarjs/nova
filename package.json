@@ -12,8 +12,6 @@
     "compile": "tsc",
     "pretest": "npm run compile",
     "test": "npm run testonly --",
-    "posttest": "npm run lint",
-    "lint": "tslint --project ./tsconfig.json ./src/**/*",
     "watch": "tsc -w",
     "testonly": "mocha --reporter spec --full-trace ./dist/__tests__/index.js",
     "testonly-watch": "mocha  --require source-map-support/register --reporter spec --full-trace ./dist/__tests__/index.js --watch",
@@ -52,8 +50,6 @@
     "sinon": "^7.5.0",
     "sinon-chai": "^2.9.0",
     "source-map-support": "^0.5.13",
-    "tslint": "^5.2.0",
-    "tslint-config-prettier": "^1.18.0",
     "typedoc": "^0.15.0",
     "typescript": "^3.4.2"
   },

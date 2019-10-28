@@ -11,11 +11,10 @@
     "outDir": "./dist",
     "allowSyntheticDefaultImports": true,
     "pretty": true,
-    "jsx": "react",
     "removeComments": true,
     "typeRoots": ["node_modules/@types"]
   },
 
-  "include": ["**/*.ts", "**/*.tsx", "**/*.jsx"],
+  "include": ["**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
