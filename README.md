@@ -28,13 +28,13 @@ This provides a learning curve for **Nova** and it explains all the features.
 ## Sample
 
 ```js
-import { query, oneToMany } from "@kaviar/nova";
+import { query, manyToOne } from "@kaviar/nova";
 
 async function test() {
   const Post = await db.createCollection("Post");
   const Comments = await db.createCollection("Comments");
 
-  oneToMany(Comments, Post, {
+  manyToOne(Comments, Post, {
     // will automatically read from postId inside Comments
     linkName: "post",
     inversedLinkName: "comments",
