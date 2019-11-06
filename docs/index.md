@@ -104,7 +104,7 @@ Using `options.sort`, `options.limit` and `options.skip` inside nested collectio
 
 ```typescript
 // The link is stored in the first mentioned collection
-import { oneToOne, manyToOne, manyToMany } from "kaviar/db";
+import { oneToOne, manyToOne, manyToMany } from "@kaviar/nova";
 
 manyToOne(Comments, Post, {
   linkName: "post",
