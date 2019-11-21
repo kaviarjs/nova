@@ -3,9 +3,9 @@ import applyReducers from "./computeReducers";
 import CollectionNode from "../nodes/CollectionNode";
 import projectGraphToDataSet from "./projectGraphToDataSet";
 
-export default node => {
+export default async node => {
   storeOneResults(node, node.results);
-  applyReducers(node);
+  await applyReducers(node);
 
   node.results = projectGraphToDataSet(node.body, node.results);
 };

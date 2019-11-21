@@ -1,7 +1,5 @@
-import * as _ from "lodash";
-import assemble from "./processDirectNode";
 import CollectionNode from "../nodes/CollectionNode";
-import { createFilters } from "./createFilters";
+import processDirectNode from "./processDirectNode";
 import processLimitSkipNode from "./processLimitSkipNode";
 import processVirtualNode from "./processVirtualNode";
 
@@ -16,31 +14,23 @@ export default async function storeHypernovaResults(
   const { filters, options } = childCollectionNode.getFiltersAndOptions();
   const linker = childCollectionNode.linker;
   const isVirtual = linker.isVirtual();
-  const collection = childCollectionNode.collection;
 
-  // If we're talking about many things
+  // When we have a many relationship with limit/skip
   if (!childCollectionNode.isOneResult) {
+    /**
+     * In this case we perform a recursive fetch, yes, not very optimal
+     */
     if (options.limit !== undefined || options.skip !== undefined) {
       processLimitSkipNode(childCollectionNode, { filters, options });
       return;
     }
   }
 
-  const aggregateFilters = createFilters(childCollectionNode);
-  Object.assign(filters, aggregateFilters);
-
+  childCollectionNode.results = await childCollectionNode.toArray();
   // if it's not virtual then we retrieve them and assemble them here.
   if (!isVirtual) {
-    childCollectionNode.results = await collection
-      .find(filters, options)
-      .toArray();
-
-    assemble(childCollectionNode, options);
+    processDirectNode(childCollectionNode);
   } else {
-    childCollectionNode.results = await collection
-      .find(filters, options)
-      .toArray();
-
     processVirtualNode(childCollectionNode);
   }
 }

@@ -15,7 +15,9 @@ export default class ProjectionNode {
     if (_.isObject(body)) {
       if (!FieldNode.canBodyRepresentAField(body)) {
         _.forEach(body, (value, fieldName) => {
-          this.nodes.push(new ProjectionNode(fieldName, value));
+          if (fieldName !== SPECIAL_PARAM_FIELD) {
+            this.nodes.push(new ProjectionNode(fieldName, value));
+          }
         });
       }
     }

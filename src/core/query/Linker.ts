@@ -4,7 +4,7 @@ import { LINK_STORAGE, LinkCollectionOptions } from "../constants";
 
 export enum LinkStrategy {
   ONE,
-  MANY,
+  MANY
 }
 
 export default class Linker {
@@ -30,7 +30,7 @@ export default class Linker {
 
     this.linkConfig = {
       ...linkConfig,
-      strategy: linkConfig.many ? LinkStrategy.MANY : LinkStrategy.ONE,
+      strategy: linkConfig.many ? LinkStrategy.MANY : LinkStrategy.ONE
     };
 
     this.linkName = linkName;
@@ -132,6 +132,29 @@ export default class Linker {
   }
 
   /**
+   * Returns the aggregation pipeline
+   */
+  public getLookupAggregationPipeline(options: GetLookupOperatorOptions = {}) {
+    const localField = this.isVirtual() ? "_id" : this.linkStorageField;
+    const foreignField = this.isVirtual() ? this.linkStorageField : "_id";
+
+    const result: any = {
+      from: this.getLinkedCollection().collectionName,
+      localField,
+      foreignField,
+      as: options.as || this.linkName
+    };
+
+    if (options.pipeline) {
+      result.pipeline = options.pipeline;
+    }
+
+    return {
+      $lookup: result
+    };
+  }
+
+  /**
    * @returns {*}
    * @private
    */
@@ -168,3 +191,8 @@ export default class Linker {
     }
   }
 }
+
+export type GetLookupOperatorOptions = {
+  pipeline?: any[];
+  as?: string;
+};

@@ -3,7 +3,9 @@ import { Collection } from "mongodb";
 import { addLinks } from "../../core/api";
 
 function generateRandomId() {
-  return Math.random().toString();
+  return Math.random()
+    .toString()
+    .slice(2);
 }
 
 export async function log(dataSet) {

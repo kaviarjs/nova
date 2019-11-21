@@ -51,8 +51,8 @@ When we talk about inversed links, we mean that we want to query `MedicalProfile
 addLinks(MedicalProfiles, {
   patient: {
     collection: () => Patients,
-    inversedBy: "medicalProfile", // The actual link name
-  },
+    inversedBy: "medicalProfile" // The actual link name
+  }
 });
 ```
 
@@ -63,8 +63,8 @@ import { query } from "@kaviar/nova";
 
 const medicalProfile = await query(MedicalProfiles, {
   patient: {
-    name: 1,
-  },
+    name: 1
+  }
 }).fetchOne();
 ```
 
@@ -108,25 +108,25 @@ import { oneToOne, manyToOne, manyToMany } from "@kaviar/nova";
 
 manyToOne(Comments, Post, {
   linkName: "post",
-  inversedLinkName: "comments",
+  inversedLinkName: "comments"
   // field will be `postId`
 });
 
 oneToOne(Users, GameProfile, {
   linkName: "gameProfile",
-  inversedLinkName: "user",
+  inversedLinkName: "user"
   // field will be `gameProfileId`
 });
 
 oneToMany(Posts, PostWarnings, {
   linkName: "postWarnings",
-  inversedLinkName: "post", // single
+  inversedLinkName: "post" // single
   // field will be `postWarningsIds`
 });
 
 manyToMany(Posts, Tags, {
   linkName: "tags",
-  inversedLinkName: "posts",
+  inversedLinkName: "posts"
   // field will be `tagsIds`
 });
 ```
@@ -147,38 +147,40 @@ addReducers(Users, {
       // Yes, you can specify here links, fields, nested fields, and other reducers as well
       profile: {
         firstName: 1,
-        lastName: 1,
-      },
+        lastName: 1
+      }
     },
     // Reducers can also work with parameters
-    reduce(obj, params) {
+    async reduce(obj, params) {
       let fullName = `${obj.profile.firstName} ${obj.profile.lastName}`;
       if (params.withPrefix) {
         fullName = `Mr ${fullName}`;
       }
 
       return fullName;
-    },
-  },
+    }
+  }
 });
 ```
 
 ```typescript
 query(Users, {
-  fullName: 1,
+  fullName: 1
 });
 
 query(Users, {
   fullName: {
     // Or with params
     $: {
-      withPrefix: true,
-    },
-  },
+      withPrefix: true
+    }
+  }
 });
 ```
 
 Fields can end with `1` or as an empty object: `{}` it makes no difference, however, you are not allowed to use dotted fields, so instead of `profile.name: 1` use `profile: { name: 1 }`.
+
+Reducers can use other links and other reducers.
 
 #### GraphQL Bridge
 
@@ -191,7 +193,7 @@ const Query = {
         // You can pass top level filters and options
         $: {
           filters: {},
-          options: {},
+          options: {}
         },
 
         // Manipulate the transformed body
@@ -215,10 +217,10 @@ const Query = {
         // Simply removes from the graph what fields it won't allow
         // Can work with deep strings like 'comments.author'
         // This is sugary syntax of intersection
-        deny, // String[]
+        deny // String[]
       })
       .fetch();
-  },
+  }
 };
 ```
 
@@ -234,13 +236,13 @@ addExpanders(Users, {
   fullName: {
     profile: {
       firstName: 1,
-      lastName: 1,
-    },
-  },
+      lastName: 1
+    }
+  }
 });
 
 query(Users, {
-  fullName: 1,
+  fullName: 1
 }).fetchOne();
 // { profile: { firstName, lastName }}
 ```

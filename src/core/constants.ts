@@ -12,7 +12,7 @@ export type FindOptions = {
 
 export const LinkCollectionOptionsDefaults = {
   type: "one",
-  index: true,
+  index: true
 };
 
 export type LinkCollectionOptions = {
@@ -29,6 +29,7 @@ export type LinkCollectionOptions = {
 
 export type ReducerOption = {
   dependency: QueryBody;
+  pipeline?: any[];
   reduce: (object: any, params?: any) => any;
 };
 
@@ -49,11 +50,19 @@ export type FieldMapOptions = {
 };
 
 export type ParamaterableObject = {
-  $: {
-    [key: string]: any;
+  filters?: any;
+  options?: {
+    limit?: number;
+    skip?: number;
+    sort?: {
+      [key: string]: any;
+    };
   };
+  pipeline?: any[];
+  [key: string]: any;
 };
 
 export type QueryBody = {
+  $?: ParamaterableObject;
   [field: string]: number | QueryBody | ParamaterableObject;
 };

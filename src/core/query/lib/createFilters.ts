@@ -35,16 +35,16 @@ function createOneDirect(parentResults: any[], linkStorageField: string) {
         _.map(parentResults, e => {
           return _.get(e, linkStorageField);
         }).filter(el => el !== undefined)
-      ),
-    },
+      )
+    }
   };
 }
 
 function createOneVirtual(parentResults: any[], linkStorageField: string) {
   return {
     [linkStorageField]: {
-      $in: _.uniq(_.map(parentResults, "_id")),
-    },
+      $in: _.uniq(_.map(parentResults, "_id"))
+    }
   };
 }
 
@@ -55,8 +55,8 @@ function createManyDirect(parentResults: any[], linkStorageField: string) {
 
   return {
     _id: {
-      $in: _.uniq(arrayOfIds),
-    },
+      $in: _.uniq(arrayOfIds)
+    }
   };
 }
 
@@ -64,7 +64,7 @@ function createManyVirtual(parentResults: any[], linkStorageField: string) {
   const arrayOfIds = _.flatten(_.map(parentResults, "_id"));
   return {
     [linkStorageField]: {
-      $in: _.uniq(arrayOfIds),
-    },
+      $in: _.uniq(arrayOfIds)
+    }
   };
 }

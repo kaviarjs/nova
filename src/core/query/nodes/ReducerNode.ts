@@ -1,4 +1,4 @@
-import { QueryBody, ReducerOption } from "./../../constants";
+import { QueryBody, ReducerOption } from "../../constants";
 import { SPECIAL_PARAM_FIELD } from "../../constants";
 import { INode } from "./INode";
 
@@ -12,6 +12,7 @@ export default class ReducerNode implements INode {
   public isSpread: boolean = false;
 
   public reduceFunction: any;
+  public pipeline: any[];
 
   // This refers to the graph dependency
   public dependency: QueryBody;
@@ -23,6 +24,7 @@ export default class ReducerNode implements INode {
     this.name = name;
     this.reduceFunction = options.reduce;
     this.dependency = options.dependency;
+    this.pipeline = options.pipeline || [];
     this.props = options.body[SPECIAL_PARAM_FIELD] || {};
   }
 
@@ -32,11 +34,11 @@ export default class ReducerNode implements INode {
    * @param {*} object
    * @param {*} args
    */
-  public compute(object) {
-    object[this.name] = this.reduce.call(this, object, this.props);
+  public async compute(object) {
+    object[this.name] = await this.reduce.call(this, object, this.props);
   }
 
-  public reduce(object, ...args) {
+  public async reduce(object, ...args) {
     return this.reduceFunction.call(this, object, ...args);
   }
 }

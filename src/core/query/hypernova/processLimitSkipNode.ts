@@ -6,7 +6,11 @@ import CollectionNode from "../nodes/CollectionNode";
  * Many results are in the following situations: 1:M (virtual), 1:M (direct), M:M (virtual), M:M (direct)
  *
  * Depending on the relationship between parent and child, we recursively fetch our results,
- * Then we create a unique set of them
+ * Then we create a unique set of them so they can be properly assembled
+ *
+ * This solution can be optimised if there are no collisions
+ * If there are many "shared" linked elements, the optimal way would be to fetch the _id's first, then fetch all by _id's
+ * And then assemble them.
  *
  * @param childCollectionNode
  */
@@ -28,7 +32,7 @@ export default async function processLimitSkipNode(
         .find(
           {
             ...filters,
-            [linkStorageField]: { $in: [parentResult._id] },
+            [linkStorageField]: { $in: [parentResult._id] }
           },
           options
         )
@@ -49,7 +53,7 @@ export default async function processLimitSkipNode(
         .find(
           {
             ...filters,
-            _id: { $in: parentResult[linkStorageField] },
+            _id: { $in: parentResult[linkStorageField] }
           },
           options
         )

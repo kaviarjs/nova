@@ -12,14 +12,10 @@ async function hypernova(collectionNode: CollectionNode) {
 }
 
 export default async function hypernovaInit(collectionNode: CollectionNode) {
-  const { filters, options } = collectionNode.getFiltersAndOptions();
-
-  const collection = collectionNode.collection;
-
-  collectionNode.results = await collection.find(filters, options).toArray();
+  collectionNode.results = await collectionNode.toArray();
 
   await hypernova(collectionNode);
-  prepareForDelivery(collectionNode);
+  await prepareForDelivery(collectionNode);
 
   return collectionNode.results;
 }

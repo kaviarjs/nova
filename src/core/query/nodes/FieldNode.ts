@@ -3,11 +3,11 @@ import * as _ from "lodash";
 import { INode } from "./INode";
 import * as dot from "dot-object";
 
-const PROJECTION_FIELDS = ["$elemMatch", "$meta", "$slice"];
+const PROJECTION_FIELDS = ["$filter"];
 
 export default class FieldNode implements INode {
   /**
-   * We have fields like: 1, {}, { $: {...} }, { $elemMatch: {...} }
+   * We have fields like: 1, {}, { $: {...} }, { $filter: {...} }
    * @param body
    */
   public static canBodyRepresentAField(body: any) {

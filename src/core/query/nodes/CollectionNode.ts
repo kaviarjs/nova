@@ -1,6 +1,6 @@
 import { Collection } from "mongodb";
 import * as _ from "lodash";
-import { SPECIAL_PARAM_FIELD } from "./../../constants";
+import { SPECIAL_PARAM_FIELD } from "../../constants";
 import { getLinker, getReducerConfig, getExpanderConfig } from "../../api";
 import { INode } from "./INode";
 import FieldNode from "./FieldNode";
@@ -8,6 +8,7 @@ import ReducerNode from "./ReducerNode";
 import { QueryBody, ReducerOption } from "../../constants";
 import Linker from "../Linker";
 import * as dot from "dot-object";
+import { createFilters } from "../lib/createFilters";
 
 export type CollectionNodeOptions = {
   collection: Collection;
@@ -21,7 +22,7 @@ export enum NodeLinkType {
   COLLECTION,
   FIELD,
   REDUCER,
-  EXPANDER,
+  EXPANDER
 }
 
 export default class CollectionNode implements INode {
@@ -122,7 +123,8 @@ export default class CollectionNode implements INode {
   }
 
   /**
-   * Returns the filters and options needed to render this
+   * Returns the filters and options needed to fetch this node
+   * Is aware if it has a parent or not
    */
   public getFiltersAndOptions(
     config: { includeFilterFields?: boolean } = {}
@@ -131,6 +133,11 @@ export default class CollectionNode implements INode {
     options: any;
   } {
     const { filters = {}, options = {} } = _.cloneDeep(this.props);
+
+    if (this.parent) {
+      const aggregateFilters = createFilters(this);
+      Object.assign(filters, aggregateFilters);
+    }
 
     options.projection = options.projection || {};
 
@@ -149,7 +156,7 @@ export default class CollectionNode implements INode {
 
     return {
       filters,
-      options,
+      options
     };
   }
 
@@ -219,6 +226,17 @@ export default class CollectionNode implements INode {
   }
 
   /**
+   * Fetches the data accordingly
+   */
+  public async toArray() {
+    return this.collection
+      .aggregate(this.getAggregationPipeline(), {
+        allowDiskUse: true
+      })
+      .toArray();
+  }
+
+  /**
    * @param fieldName
    */
   public getLinkingType(fieldName): NodeLinkType {
@@ -235,6 +253,53 @@ export default class CollectionNode implements INode {
     }
 
     return NodeLinkType.FIELD;
+  }
+
+  /**
+   * Based on the current configuration fetches the pipeline
+   */
+  public getAggregationPipeline(): any[] {
+    const { filters, options } = this.getFiltersAndOptions();
+    const pipeline = [];
+
+    if (!_.isEmpty(filters)) {
+      pipeline.push({ $match: filters });
+    }
+
+    if (options.sort) {
+      pipeline.push({ $sort: options.sort });
+    }
+
+    if (this.props.pipeline) {
+      pipeline.push(...this.props.pipeline);
+
+      this.reducerNodes.forEach(reducerNode => {
+        pipeline.push(...reducerNode.pipeline);
+      });
+    }
+
+    if (options.limit) {
+      if (!options.skip) {
+        options.skip = 0;
+      }
+      pipeline.push({
+        $limit: options.limit + options.skip
+      });
+    }
+
+    if (options.skip) {
+      pipeline.push({
+        $skip: options.skip
+      });
+    }
+
+    if (options.projection) {
+      pipeline.push({
+        $project: options.projection
+      });
+    }
+
+    return pipeline;
   }
 
   /**
@@ -266,7 +331,7 @@ export default class CollectionNode implements INode {
             collection: linker.getLinkedCollection(),
             linker,
             name: fieldName,
-            parent: this,
+            parent: this
           });
           break;
         case NodeLinkType.REDUCER:
@@ -275,7 +340,7 @@ export default class CollectionNode implements INode {
           childNode = new ReducerNode(fieldName, {
             body: fieldBody,
             dependency: reducerConfig.dependency,
-            reduce: reducerConfig.reduce,
+            reduce: reducerConfig.reduce
           });
 
           if (fromReducerNode) {

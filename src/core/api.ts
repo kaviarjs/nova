@@ -8,13 +8,14 @@ import {
   QueryBody,
   REDUCER_STORAGE,
   ReducerOption,
-  ReducerOptions,
+  ReducerOptions
 } from "./constants";
 import * as _ from "lodash";
 import * as mongodb from "mongodb";
 import Linker from "./query/Linker";
 import Query from "./query/Query";
 import astToQuery, { AstToQueryOptions } from "./graphql/astToQuery";
+import { GetLookupOperatorOptions } from "./query/Linker";
 
 export function enhance(prototype, resolve = ctx => this) {
   Object.assign(prototype, {
@@ -29,7 +30,7 @@ export function enhance(prototype, resolve = ctx => this) {
     },
     addExpanders(options: ExpanderOptions) {
       return addExpanders(resolve(this), options);
-    },
+    }
   });
 
   prototype.query.graphql = (ast: any, options: AstToQueryOptions) => {
@@ -69,11 +70,11 @@ export function addLinks(collection: mongodb.Collection, data: LinkOptions) {
 
     const linker = new Linker(collection, linkName, {
       ...LinkCollectionOptionsDefaults,
-      ...linkConfig,
+      ...linkConfig
     });
 
     Object.assign(collection[LINK_STORAGE], {
-      [linkName]: linker,
+      [linkName]: linker
     });
   });
 }
@@ -92,7 +93,7 @@ export function addExpanders(
     }
 
     Object.assign(collection[EXPANDER_STORAGE], {
-      [expanderName]: expanderConfig,
+      [expanderName]: expanderConfig
     });
   });
 }
@@ -104,6 +105,18 @@ export function getLinker(
   if (collection[LINK_STORAGE]) {
     return collection[LINK_STORAGE][name];
   }
+}
+
+/**
+ * This returns the correct aggregation pipeline operator
+ * This is useful for complex searching and filtering
+ */
+export function lookup(
+  collection: mongodb.Collection,
+  linkName: string,
+  options?: GetLookupOperatorOptions
+) {
+  return getLinker(collection, linkName).getLookupAggregationPipeline(options);
 }
 
 export function getReducerConfig(
@@ -148,7 +161,7 @@ export function addReducers(
     }
 
     Object.assign(collection[REDUCER_STORAGE], {
-      [reducerName]: reducerConfig,
+      [reducerName]: reducerConfig
     });
   });
 }
