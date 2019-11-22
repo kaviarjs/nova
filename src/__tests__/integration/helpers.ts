@@ -8,6 +8,10 @@ function generateRandomId() {
     .slice(2);
 }
 
+export function idsEqual(id1, id2) {
+  return id1.toString() === id2.toString();
+}
+
 export async function log(dataSet) {
   console.log(JSON.stringify(dataSet, null, 4));
 }

@@ -1,7 +1,7 @@
-import { query, clear, lookup } from "../../core/api";
-import { getRandomCollection } from "../integration/helpers";
+import { query, clear, lookup, addReducers } from "../../core/api";
+import { getRandomCollection, idsEqual } from "../integration/helpers";
 import { Collection } from "mongodb";
-import { oneToMany, manyToMany } from "../../core/utils";
+import { oneToMany, manyToMany, oneToOne, manyToOne } from "../../core/utils";
 import { assert } from "chai";
 
 describe("Relational Filtering", () => {
@@ -30,7 +30,7 @@ describe("Relational Filtering", () => {
     [A, B, C, D, E].forEach(coll => clear(coll));
   });
 
-  it("1:M:D - Simple filtering of nested collection", async () => {
+  it("M:M:D - Simple filtering of nested collection", async () => {
     // A has many B.
     manyToMany(A, B, {
       linkName: "bs",
@@ -100,5 +100,223 @@ describe("Relational Filtering", () => {
     }).fetch();
 
     assert.lengthOf(result2, 2);
+  });
+
+  it("1:1 - I want to search users who have at least X in their bank account", async () => {
+    // A has many B.
+    const Users = A;
+    const BankAccounts = B;
+
+    oneToOne(Users, BankAccounts, {
+      linkName: "bankAccount",
+      inversedLinkName: "user"
+    });
+
+    const b1 = await BankAccounts.insertOne({ name: "B1", amount: 500 });
+    const b2 = await BankAccounts.insertOne({ name: "B1", amount: 5 });
+
+    const u1 = await Users.insertOne({
+      name: "B1",
+      number: 5,
+      bankAccountId: b1.insertedId
+    });
+    const u2 = await Users.insertOne({
+      name: "B1",
+      number: 5,
+      bankAccountId: b2.insertedId
+    });
+
+    // We are looking for A's which have exactly 2 B's
+    const result = await query(Users, {
+      $: {
+        pipeline: [
+          lookup(Users, "bankAccount"),
+          {
+            $match: {
+              "bankAccount.amount": {
+                $gte: 500
+              }
+            }
+          }
+        ]
+      },
+      _id: 1,
+      bs: {
+        _id: 1
+      },
+      bsCount: 1
+    }).fetch();
+
+    assert.lengthOf(result, 1);
+    assert.equal(u1.insertedId.toString(), result[0]._id.toString());
+  });
+
+  it("Reducers can extend the pipeline and allow fields", async () => {
+    // A has many B.
+    const Comments = A;
+    const Posts = B;
+
+    manyToOne(Comments, Posts, {
+      linkName: "post",
+      inversedLinkName: "comments"
+    });
+
+    addReducers(Posts, {
+      commentsCount: {
+        dependency: { _id: 1 },
+        pipeline: [
+          lookup(Posts, "comments"),
+          {
+            $addFields: {
+              commentsCount: { $size: "$comments" }
+            }
+          }
+        ]
+      }
+    });
+
+    const p1 = await Posts.insertOne({ name: "John Post" });
+
+    const comments = await Comments.insertMany([
+      { title: "1", postId: p1.insertedId },
+      { title: "1", postId: p1.insertedId },
+      { title: "1", postId: p1.insertedId },
+      { title: "1", postId: p1.insertedId },
+      { title: "1", postId: p1.insertedId }
+    ]);
+
+    const result = await query(Posts, {
+      commentsCount: 1
+    }).fetchOne();
+
+    assert.isObject(result);
+    assert.equal(result.commentsCount, 5);
+  });
+
+  it("We should be able to sort by link value", async () => {
+    // A has many B.
+    const Users = A;
+    const BankAccounts = B;
+
+    oneToOne(Users, BankAccounts, {
+      linkName: "bankAccount",
+      inversedLinkName: "user"
+    });
+
+    const b1 = await BankAccounts.insertOne({ amount: 500 });
+    const b2 = await BankAccounts.insertOne({ amount: 5 });
+    const b3 = await BankAccounts.insertOne({ amount: 600 });
+    const b4 = await BankAccounts.insertOne({ amount: 0 });
+
+    const u1 = await Users.insertOne({ bankAccountId: b1.insertedId });
+    const u2 = await Users.insertOne({ bankAccountId: b2.insertedId });
+    const u3 = await Users.insertOne({ bankAccountId: b3.insertedId });
+    const u4 = await Users.insertOne({ bankAccountId: b4.insertedId });
+
+    // We are looking for A's which have exactly 2 B's
+    const result = await query(Users, {
+      $: {
+        pipeline: [
+          lookup(Users, "bankAccount"),
+          {
+            $sort: {
+              "bankAccount.amount": 1
+            }
+          }
+        ]
+      },
+      _id: 1
+    }).fetch();
+
+    // Order should be: u4, u2, u1, u3
+    assert.isTrue(idsEqual(result[0]._id, u4.insertedId));
+    assert.isTrue(idsEqual(result[1]._id, u2.insertedId));
+    assert.isTrue(idsEqual(result[2]._id, u1.insertedId));
+    assert.isTrue(idsEqual(result[3]._id, u3.insertedId));
+  });
+
+  it("We should be able to filter by deeper links", async () => {
+    // Deeper checks, for example, only users belonging to companies with minimum 5 departments
+    const Users = A;
+    const Companies = B;
+    const Departments = C;
+
+    manyToOne(Users, Companies, {
+      linkName: "company",
+      inversedLinkName: "users"
+    });
+
+    manyToMany(Companies, Departments, {
+      linkName: "departments",
+      inversedLinkName: "companies"
+    });
+
+    const d1 = await Departments.insertOne({});
+    const d2 = await Departments.insertOne({});
+    const d3 = await Departments.insertOne({});
+    const d4 = await Departments.insertOne({});
+
+    const c1 = await Companies.insertOne({
+      departmentsIds: [d1.insertedId, d2.insertedId]
+    });
+    const c2 = await Companies.insertOne({
+      departmentsIds: [d1.insertedId, d3.insertedId, d4.insertedId]
+    });
+    const c3 = await Companies.insertOne({
+      departmentsIds: [d1.insertedId]
+    });
+    const c4 = await Companies.insertOne({
+      departmentsIds: null
+    });
+
+    await Users.insertMany([
+      { companyId: c1.insertedId },
+      { companyId: c2.insertedId },
+      { companyId: c3.insertedId },
+      { companyId: c4.insertedId },
+      { companyId: c2.insertedId },
+      { companyId: c3.insertedId },
+      { companyId: c4.insertedId },
+      { companyId: c1.insertedId },
+      { companyId: c2.insertedId },
+      { companyId: c3.insertedId },
+      { companyId: c4.insertedId },
+      { companyId: c1.insertedId }
+    ]);
+
+    // We are looking for A's which have exactly 2 B's
+    const result = await query(Users, {
+      $: {
+        pipeline: [
+          lookup(Users, "company", {
+            pipeline: [
+              lookup(Companies, "departments"),
+              {
+                $addFields: {
+                  departmentsCount: { $size: "$departments" }
+                }
+              }
+            ]
+          }),
+          {
+            $match: {
+              "company.departmentsCount": {
+                $gte: 2
+              }
+            }
+          }
+        ]
+      },
+      _id: 1,
+      companyId: 1
+    }).fetch();
+
+    assert.lengthOf(result, 6);
+    result.forEach(user => {
+      assert.isTrue(
+        idsEqual(user.companyId, c1.insertedId) ||
+          idsEqual(user.companyId, c2.insertedId)
+      );
+    });
   });
 });

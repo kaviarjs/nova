@@ -104,6 +104,10 @@ export function getLinker(
 ): Linker {
   if (collection[LINK_STORAGE]) {
     return collection[LINK_STORAGE][name];
+  } else {
+    throw new Error(
+      `Link "${name}" as not found in collection: "${collection.collectionName}"`
+    );
   }
 }
 

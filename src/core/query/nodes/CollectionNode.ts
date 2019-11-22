@@ -145,6 +145,10 @@ export default class CollectionNode implements INode {
       fieldNode.blendInProjection(options.projection);
     });
 
+    this.reducerNodes.forEach(reducerNode => {
+      reducerNode.blendInProjection(options.projection);
+    });
+
     if (config.includeFilterFields) {
       // We have to create a list of fields that we apply to projection
       // Based on the filters
@@ -266,17 +270,17 @@ export default class CollectionNode implements INode {
       pipeline.push({ $match: filters });
     }
 
+    if (this.props.pipeline) {
+      pipeline.push(...this.props.pipeline);
+    }
+
     if (options.sort) {
       pipeline.push({ $sort: options.sort });
     }
 
-    if (this.props.pipeline) {
-      pipeline.push(...this.props.pipeline);
-
-      this.reducerNodes.forEach(reducerNode => {
-        pipeline.push(...reducerNode.pipeline);
-      });
-    }
+    this.reducerNodes.forEach(reducerNode => {
+      pipeline.push(...reducerNode.pipeline);
+    });
 
     if (options.limit) {
       if (!options.skip) {
@@ -339,8 +343,7 @@ export default class CollectionNode implements INode {
 
           childNode = new ReducerNode(fieldName, {
             body: fieldBody,
-            dependency: reducerConfig.dependency,
-            reduce: reducerConfig.reduce
+            ...reducerConfig
           });
 
           if (fromReducerNode) {

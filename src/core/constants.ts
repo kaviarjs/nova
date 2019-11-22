@@ -30,7 +30,8 @@ export type LinkCollectionOptions = {
 export type ReducerOption = {
   dependency: QueryBody;
   pipeline?: any[];
-  reduce: (object: any, params?: any) => any;
+  projection?: any;
+  reduce?: (object: any, params?: any) => any;
 };
 
 export type LinkOptions = {

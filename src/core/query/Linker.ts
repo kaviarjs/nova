@@ -138,20 +138,65 @@ export default class Linker {
     const localField = this.isVirtual() ? "_id" : this.linkStorageField;
     const foreignField = this.isVirtual() ? this.linkStorageField : "_id";
 
+    let matches = this.createAggregationMatches(foreignField);
+
     const result: any = {
       from: this.getLinkedCollection().collectionName,
-      localField,
-      foreignField,
-      as: options.as || this.linkName
+      let: {
+        localField: `$${localField}`
+      },
+      as: options.as || this.linkName,
+      pipeline: [
+        {
+          $match: { $expr: { $and: matches } }
+        },
+        ...(options.pipeline ? options.pipeline : [])
+      ]
     };
 
-    if (options.pipeline) {
-      result.pipeline = options.pipeline;
-    }
+    // console.log(JSON.stringify(result, null, 4));
 
     return {
       $lookup: result
     };
+  }
+
+  /**
+   * This function allows us to use the aggregation pipeline fully
+   * @param foreignField
+   */
+  private createAggregationMatches(foreignField: any) {
+    let matches = [];
+    if (this.isVirtual()) {
+      if (this.isMany()) {
+        matches.push(
+          {
+            $isArray: `$${foreignField}`
+          },
+          {
+            $in: [`$$localField`, `$${foreignField}`]
+          }
+        );
+      } else {
+        matches.push({
+          $eq: [`$${foreignField}`, `$$localField`]
+        });
+      }
+    } else {
+      if (this.isMany()) {
+        matches.push(
+          { $isArray: `$$localField` },
+          {
+            $in: [`$${foreignField}`, `$$localField`]
+          }
+        );
+      } else {
+        matches.push({
+          $eq: [`$$localField`, `$${foreignField}`]
+        });
+      }
+    }
+    return matches;
   }
 
   /**
