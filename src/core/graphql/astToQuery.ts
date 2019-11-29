@@ -1,25 +1,28 @@
 // import intersectDeep from "../../core/query/lib/intersectDeep";
 import * as _ from "lodash";
 import * as graphqlFields from "graphql-fields";
-import { SPECIAL_PARAM_FIELD, QueryBody } from "../constants";
+import { SPECIAL_PARAM_FIELD, CollectionQueryBody } from "../constants";
 import Query from "../query/Query";
-import intersectDeep from "../query/lib/intersectDeep";
+import intersectDeep from "./intersectDeep";
 import { Collection } from "mongodb";
 
+export const ArgumentStore = Symbol("GraphQLArgumentStore");
+
 const Errors = {
-  MAX_DEPTH: "The maximum depth of this request exceeds the depth allowed.",
+  MAX_DEPTH: "The maximum depth of this request exceeds the depth allowed."
 };
 
 export type AstToQueryOptions = {
-  intersect?: QueryBody;
+  intersect?: CollectionQueryBody;
   maxLimit?: number;
   maxDepth?: number;
   deny?: string[];
-  embody?(body: QueryBody);
+  embody?(body: CollectionQueryBody, getArguments: (path: string) => any);
 };
 
-export function astToBody(ast) {
+export function astToBody(ast): CollectionQueryBody {
   const body = graphqlFields(ast, {}, { processArguments: true });
+
   replaceArgumentsWithOurs(body);
 
   return body;
@@ -34,7 +37,8 @@ function replaceArgumentsWithOurs(body: any) {
           args[key] = value.value;
         });
       });
-      body[SPECIAL_PARAM_FIELD] = args;
+
+      body[ArgumentStore] = args;
       delete body[key];
 
       return;
@@ -52,20 +56,13 @@ export default function astToQuery(
   config: AstToQueryOptions = {}
 ) {
   // get the body
-  let body = graphqlFields(ast, {}, { processArguments: true });
-
-  body[SPECIAL_PARAM_FIELD] = config[SPECIAL_PARAM_FIELD] || {};
-
-  // enforce the maximum amount of data we allow to retrieve
-  if (config.maxLimit) {
-    enforceMaxLimit(body[SPECIAL_PARAM_FIELD], config.maxLimit);
-  }
+  let body = astToBody(ast);
 
   // figure out depth based
   if (config.maxDepth) {
     const currentMaxDepth = getMaxDepth(body);
     if (currentMaxDepth > config.maxDepth) {
-      throw Errors.MAX_DEPTH;
+      throw new Error(Errors.MAX_DEPTH);
     }
   }
 
@@ -78,7 +75,13 @@ export default function astToQuery(
   }
 
   if (config.embody) {
-    config.embody.call(null, body);
+    const getArguments = createGetArguments(body);
+    config.embody.call(null, body, getArguments);
+  }
+
+  // enforce the maximum amount of data we allow to retrieve
+  if (config.maxLimit) {
+    enforceMaxLimit(body[SPECIAL_PARAM_FIELD], config.maxLimit);
   }
 
   // we return the query
@@ -100,11 +103,18 @@ export function getMaxDepth(body) {
   return Math.max(...depths) + 1;
 }
 
+/**
+ * This function performs modifications and alterations on the body
+ * By removing the fields that are denied.
+ *
+ * @param body
+ * @param fields
+ */
 export function deny(body, fields) {
   fields.forEach(field => {
     let parts = field.split(".");
     let accessor = body;
-    while (parts.length != 0) {
+    while (parts.length !== 0) {
       if (parts.length === 1) {
         delete accessor[parts[0]];
       } else {
@@ -134,12 +144,17 @@ export function clearEmptyObjects(body) {
   return Object.keys(body).length === 0;
 }
 
-function enforceMaxLimit(field: any, maxLimit: number) {
-  if (!field.options) {
-    field.options = {};
+/**
+ * Ensures that there is a limit for the data you want to receive
+ * @param props
+ * @param maxLimit
+ */
+export function enforceMaxLimit(props: any, maxLimit: number) {
+  if (!props.options) {
+    props.options = {};
   }
 
-  const options = field.options;
+  const options = props.options;
 
   if (maxLimit === undefined) {
     return;
@@ -155,7 +170,7 @@ function enforceMaxLimit(field: any, maxLimit: number) {
 }
 
 // The converter function
-export const astQueryToInfo = astToInfo => {
+export function astQueryToInfo(astToInfo) {
   const operation = astToInfo.definitions.find(
     ({ kind }) => kind === "OperationDefinition"
   );
@@ -164,13 +179,39 @@ export const astQueryToInfo = astToInfo => {
     .reduce(
       (result, current) => ({
         ...result,
-        [current.name.value]: current,
+        [current.name.value]: current
       }),
       {}
     );
 
   return {
     fieldNodes: operation.selectionSet.selections,
-    fragments,
+    fragments
   };
-};
+}
+
+export function createGetArguments(body) {
+  return function(path) {
+    const parts = path.split(".");
+    let stopped = false;
+    let accessor = body;
+    for (var i = 0; i < parts.length; i++) {
+      if (!accessor) {
+        stopped = true;
+        break;
+      }
+
+      if (accessor[parts[i]]) {
+        accessor = accessor[parts[i]];
+      }
+    }
+
+    if (stopped) {
+      return {};
+    }
+
+    if (accessor) {
+      return accessor[ArgumentStore] || {};
+    }
+  };
+}

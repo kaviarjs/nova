@@ -1,18 +1,25 @@
 import { Collection } from "mongodb";
 import * as _ from "lodash";
-import { SPECIAL_PARAM_FIELD } from "../../constants";
-import { getLinker, getReducerConfig, getExpanderConfig } from "../../api";
+import * as dot from "dot-object";
+
+import { SPECIAL_PARAM_FIELD, ALIAS_FIELD } from "../../constants";
+import { CollectionQueryBody, ReducerOption } from "../../constants";
+
+import {
+  getLinker,
+  getReducerConfig,
+  getExpanderConfig,
+  hasLinker
+} from "../../api";
+import Linker from "../Linker";
 import { INode } from "./INode";
 import FieldNode from "./FieldNode";
 import ReducerNode from "./ReducerNode";
-import { QueryBody, ReducerOption } from "../../constants";
-import Linker from "../Linker";
-import * as dot from "dot-object";
-import { createFilters } from "../lib/createFilters";
 
 export type CollectionNodeOptions = {
   collection: Collection;
-  body: QueryBody;
+  body: CollectionQueryBody;
+  explain?: boolean;
   name?: string;
   parent?: CollectionNode;
   linker?: Linker;
@@ -26,17 +33,22 @@ export enum NodeLinkType {
 }
 
 export default class CollectionNode implements INode {
-  public body: QueryBody;
+  public body: CollectionQueryBody;
   public name: string;
   public collection: Collection;
   public parent: CollectionNode;
+  public alias: string;
 
   public nodes: INode[] = [];
-
   public props: any;
 
   public isVirtual?: boolean;
   public isOneResult?: boolean;
+
+  /**
+   * When this is true, we are explaining the pipeline, and the given results
+   */
+  public readonly explain: boolean;
 
   /**
    * The linker represents how the parent collection node links to the child collection
@@ -47,7 +59,7 @@ export default class CollectionNode implements INode {
   public results: any = [];
 
   constructor(options: CollectionNodeOptions) {
-    const { collection, body, name, parent, linker } = options;
+    const { collection, body, name, parent, linker, explain = false } = options;
 
     if (collection && !_.isObject(body)) {
       throw new Error(
@@ -55,9 +67,14 @@ export default class CollectionNode implements INode {
       );
     }
 
-    this.body = body;
+    this.body = _.cloneDeep(body);
     this.props = this.body[SPECIAL_PARAM_FIELD] || {};
+    this.alias = this.body[ALIAS_FIELD];
 
+    delete this.body[SPECIAL_PARAM_FIELD];
+    delete this.body[ALIAS_FIELD];
+
+    this.explain = explain;
     this.name = name;
     this.collection = collection;
     this.parent = parent;
@@ -107,7 +124,11 @@ export default class CollectionNode implements INode {
    * @param name {string}
    */
   public getLinker(name: string): Linker {
-    return getLinker(this.collection, name);
+    if (hasLinker(this.collection, name)) {
+      return getLinker(this.collection, name);
+    }
+
+    return null;
   }
 
   public getReducer(name: string): ReducerNode {
@@ -118,50 +139,58 @@ export default class CollectionNode implements INode {
     return getReducerConfig(this.collection, name);
   }
 
-  public getExpanderConfig(name: string): QueryBody {
+  public getExpanderConfig(name: string): CollectionQueryBody {
     return getExpanderConfig(this.collection, name);
   }
 
   /**
    * Returns the filters and options needed to fetch this node
-   * Is aware if it has a parent or not
+   * The argument parentObject is given when we perform recursive fetches
    */
-  public getFiltersAndOptions(
-    config: { includeFilterFields?: boolean } = {}
+  public getPropsForQuerying(
+    parentObject?: any
   ): {
     filters: any;
     options: any;
+    pipeline: any[];
   } {
-    const { filters = {}, options = {} } = _.cloneDeep(this.props);
+    let props = _.isFunction(this.props)
+      ? this.props(parentObject)
+      : _.cloneDeep(this.props);
 
-    if (this.parent) {
-      const aggregateFilters = createFilters(this);
-      Object.assign(filters, aggregateFilters);
-    }
+    let { filters = {}, options = {}, pipeline = [] } = props;
 
-    options.projection = options.projection || {};
-
-    this.fieldNodes.forEach(fieldNode => {
-      fieldNode.blendInProjection(options.projection);
-    });
-
-    this.reducerNodes.forEach(reducerNode => {
-      reducerNode.blendInProjection(options.projection);
-    });
-
-    if (config.includeFilterFields) {
-      // We have to create a list of fields that we apply to projection
-      // Based on the filters
-    }
-
-    if (!options.projection._id) {
-      options.projection._id = 1;
-    }
+    options.projection = this.blendInProjection(options.projection);
 
     return {
       filters,
-      options
+      options,
+      pipeline
     };
+  }
+
+  /**
+   * Creates the projection object based on all the fields and reducers
+   * @param projection
+   */
+  public blendInProjection(projection) {
+    if (!projection) {
+      projection = {};
+    }
+
+    this.fieldNodes.forEach(fieldNode => {
+      fieldNode.blendInProjection(projection);
+    });
+
+    this.reducerNodes.forEach(reducerNode => {
+      reducerNode.blendInProjection(projection);
+    });
+
+    if (!projection._id) {
+      projection._id = 1;
+    }
+
+    return projection;
   }
 
   /**
@@ -232,12 +261,37 @@ export default class CollectionNode implements INode {
   /**
    * Fetches the data accordingly
    */
-  public async toArray() {
-    return this.collection
-      .aggregate(this.getAggregationPipeline(), {
+  public async toArray(additionalFilters = {}, parentObject?: any) {
+    const pipeline = this.getAggregationPipeline(
+      additionalFilters,
+      parentObject
+    );
+
+    if (this.explain) {
+      console.log(
+        `[${this.name}] Pipeline:\n`,
+        JSON.stringify(pipeline, null, 2)
+      );
+    }
+
+    const results = await this.collection
+      .aggregate(pipeline, {
         allowDiskUse: true
       })
       .toArray();
+
+    if (this.explain) {
+      console.log(
+        `[${this.name}] Results:\n`,
+        JSON.stringify(results, null, 2)
+      );
+    }
+
+    if (!results) {
+      return [];
+    }
+
+    return results;
   }
 
   /**
@@ -262,17 +316,24 @@ export default class CollectionNode implements INode {
   /**
    * Based on the current configuration fetches the pipeline
    */
-  public getAggregationPipeline(): any[] {
-    const { filters, options } = this.getFiltersAndOptions();
+  public getAggregationPipeline(
+    additionalFilters = {},
+    parentObject?: any
+  ): any[] {
+    const {
+      filters,
+      options,
+      pipeline: pipelineFromProps
+    } = this.getPropsForQuerying(parentObject);
+
     const pipeline = [];
+    Object.assign(filters, additionalFilters);
 
     if (!_.isEmpty(filters)) {
       pipeline.push({ $match: filters });
     }
 
-    if (this.props.pipeline) {
-      pipeline.push(...this.props.pipeline);
-    }
+    pipeline.push(...pipelineFromProps);
 
     if (options.sort) {
       pipeline.push({ $sort: options.sort });
@@ -309,29 +370,38 @@ export default class CollectionNode implements INode {
   /**
    * This function creates the children properly for my root.
    */
-  private spread(body, fromReducerNode?: ReducerNode) {
+  private spread(body: CollectionQueryBody, fromReducerNode?: ReducerNode) {
     _.forEach(body, (fieldBody, fieldName) => {
       if (!fieldBody) {
         return;
       }
+
       if (fieldName === SPECIAL_PARAM_FIELD) {
         return;
       }
 
-      const linkType = this.getLinkingType(fieldName);
+      let alias = fieldName;
+      if (fieldBody[ALIAS_FIELD]) {
+        alias = fieldBody[ALIAS_FIELD];
+      }
+
+      const linkType = this.getLinkingType(alias);
+
       let childNode: INode;
 
       switch (linkType) {
         case NodeLinkType.COLLECTION:
-          if (this.hasCollectionNode(fieldName)) {
-            this.getCollectionNode(fieldName).spread(fieldBody);
+          if (this.hasCollectionNode(alias)) {
+            this.getCollectionNode(alias).spread(
+              fieldBody as CollectionQueryBody
+            );
             return;
           }
 
-          const linker = this.getLinker(fieldName);
+          const linker = this.getLinker(alias);
 
           childNode = new CollectionNode({
-            body: fieldBody as QueryBody,
+            body: fieldBody as CollectionQueryBody,
             collection: linker.getLinkedCollection(),
             linker,
             name: fieldName,
@@ -342,10 +412,13 @@ export default class CollectionNode implements INode {
           const reducerConfig = this.getReducerConfig(fieldName);
 
           childNode = new ReducerNode(fieldName, {
-            body: fieldBody,
+            body: fieldBody as CollectionQueryBody,
             ...reducerConfig
           });
 
+          /**
+           * This scenario is when a reducer is using another reducer
+           */
           if (fromReducerNode) {
             fromReducerNode.dependencies.push(childNode);
           }

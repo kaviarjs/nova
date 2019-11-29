@@ -11,7 +11,7 @@ export function createFilters(childCollectionNode: CollectionNode) {
   const isVirtual = linker.isVirtual();
   const linkStorageField = linker.linkStorageField;
   const parentResults = childCollectionNode.parent.results;
-  const isMany = linker.strategy === LinkStrategy.MANY;
+  const isMany = childCollectionNode.linker.isMany();
 
   if (isVirtual) {
     if (isMany) {

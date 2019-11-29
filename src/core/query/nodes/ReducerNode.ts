@@ -1,9 +1,9 @@
-import { QueryBody, ReducerOption } from "../../constants";
+import { CollectionQueryBody, ReducerOption } from "../../constants";
 import { SPECIAL_PARAM_FIELD } from "../../constants";
 import { INode } from "./INode";
 
 type ReducerNodeOptions = ReducerOption & {
-  body: QueryBody;
+  body: CollectionQueryBody;
 };
 
 export default class ReducerNode implements INode {
@@ -16,7 +16,7 @@ export default class ReducerNode implements INode {
   public projection: any;
 
   // This refers to the graph dependency
-  public dependency: QueryBody;
+  public dependency: CollectionQueryBody;
 
   // This is a list of reducer nodes this uses
   public dependencies: any = [];

@@ -85,6 +85,7 @@ describe("Main tests", async function() {
     const b1 = await B.insertOne({ number: 200 });
     const b2 = await B.insertOne({ number: 300 });
     const b3 = await B.insertOne({ number: 500 });
+
     await A.insertOne({
       number: 100,
       bsIds: [b1, b2, b3].map(b => b.insertedId)
@@ -1048,5 +1049,45 @@ describe("Main tests", async function() {
     assert.isNull(e.a);
   });
 
-  // limit/skip/sort in nested links
+  it("should allow limits and skips and sorts in nested direct links", async () => {
+    const Posts = A;
+    const Comments = B;
+
+    manyToOne(Comments, Posts, {
+      linkName: "post",
+      inversedLinkName: "comments"
+    });
+
+    const p1 = await Posts.insertOne({});
+
+    for (let i = 0; i < 50; i++) {
+      await Comments.insertOne({
+        number: i,
+        postId: p1.insertedId
+      });
+    }
+
+    const post = await query(Posts, {
+      _id: 1,
+      comments: {
+        $: {
+          options: {
+            sort: {
+              number: -1
+            },
+            limit: 10,
+            skip: 10
+          }
+        },
+        number: 1,
+        _id: 1
+      }
+    }).fetchOne();
+
+    assert.isObject(post);
+
+    assert.lengthOf(post.comments, 10);
+    assert.equal(post.comments[0].number, 39);
+    assert.equal(post.comments[9].number, 30);
+  });
 });

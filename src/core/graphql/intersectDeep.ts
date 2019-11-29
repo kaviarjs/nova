@@ -1,15 +1,19 @@
 import * as _ from "lodash";
-import { SPECIAL_PARAM_FIELD } from "../../constants";
-import FieldNode from "../nodes/FieldNode";
+import FieldNode from "../query/nodes/FieldNode";
+import { ArgumentStore } from "./astToQuery";
 
 export default function intersectDeep(what, intersection) {
   const result = {};
+  if (what[ArgumentStore]) {
+    result[ArgumentStore] = what[ArgumentStore];
+  }
+
   _.forEach(intersection, (value, fieldName) => {
     if (!what[fieldName]) {
       return;
     }
 
-    const isField: boolean = FieldNode.canBodyRepresentAField(value);
+    const isField = FieldNode.canBodyRepresentAField(value);
 
     if (isField) {
       result[fieldName] = what[fieldName];

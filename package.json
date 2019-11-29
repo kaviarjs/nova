@@ -15,7 +15,7 @@
     "watch": "tsc -w",
     "testonly": "mocha --reporter spec --full-trace ./dist/__tests__/index.js",
     "testonly-watch": "mocha  --require source-map-support/register --reporter spec --full-trace ./dist/__tests__/index.js --watch",
-    "coverage": "node ./node_modules/istanbul/lib/cli.js cover _mocha -- --full-trace ./dist/__tests__/index.js",
+    "coverage": "node ./node_modules/istanbul/lib/cli.js cover -x '**/__tests__/**' _mocha -- --full-trace ./dist/__tests__/index.js",
     "postcoverage": "remap-istanbul --input coverage/coverage.raw.json --type lcovonly --output coverage/lcov.info",
     "prepublishOnly": "npm run clean && npm run compile",
     "gen-doc": "typedoc ./src --out typeDocs --tsconfig tsconfig.json"

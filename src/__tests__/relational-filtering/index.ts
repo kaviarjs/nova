@@ -73,8 +73,7 @@ describe("Relational Filtering", () => {
       _id: 1,
       bs: {
         _id: 1
-      },
-      bsCount: 1
+      }
     }).fetch();
 
     assert.lengthOf(result, 2);
@@ -317,6 +316,200 @@ describe("Relational Filtering", () => {
         idsEqual(user.companyId, c1.insertedId) ||
           idsEqual(user.companyId, c2.insertedId)
       );
+    });
+  });
+
+  // I want to fetch all users belonging to companies where they, themselves are director
+  it("Should be able to work with dynamic filterings", async () => {
+    const Users = A;
+    const Companies = B;
+
+    manyToOne(Users, Companies, {
+      linkName: "company",
+      inversedLinkName: "users"
+    });
+
+    oneToOne(Companies, Users, {
+      linkName: "director"
+    });
+
+    const c1 = await Companies.insertOne({ name: "ACME" });
+    const c2 = await Companies.insertOne({ name: "JOHNSON" });
+    const c3 = await Companies.insertOne({ name: "WAFFLE" });
+
+    const u1 = await Users.insertOne({
+      index: 1,
+      name: "D",
+      companyId: c1.insertedId
+    });
+    const u2 = await Users.insertOne({
+      index: 2,
+      name: "U",
+      companyId: c2.insertedId
+    });
+    const u3 = await Users.insertOne({
+      index: 3,
+      name: "D",
+      companyId: c2.insertedId
+    });
+    const u4 = await Users.insertOne({
+      index: 4,
+      name: "U",
+      companyId: c1.insertedId
+    });
+
+    Companies.updateOne(
+      { _id: c1.insertedId },
+      {
+        $set: {
+          directorId: u1.insertedId
+        }
+      }
+    );
+    Companies.updateOne(
+      { _id: c2.insertedId },
+      {
+        $set: {
+          directorId: u3.insertedId
+        }
+      }
+    );
+
+    const result = await query(Users, {
+      $: {
+        options: {
+          sort: {
+            index: 1
+          }
+        }
+      },
+      _id: 1,
+      company: {
+        $(parent) {
+          return {
+            filters: {
+              directorId: parent._id
+            }
+          };
+        }
+      }
+    }).fetch();
+
+    assert.lengthOf(result, 4);
+    result.forEach(user => {
+      const isDirector =
+        idsEqual(user._id, u1.insertedId) || idsEqual(user._id, u3.insertedId);
+
+      if (isDirector) {
+        assert.isObject(user.company);
+      } else {
+        assert.isNull(user.company);
+      }
+    });
+  });
+
+  // Test the $alias thingie
+  it("Should allow aliasing collections", async () => {
+    // A has many B.
+    const Comments = A;
+    const Posts = B;
+
+    manyToOne(Comments, Posts, {
+      linkName: "post",
+      inversedLinkName: "comments"
+    });
+
+    const p1 = await Posts.insertOne({ name: "John Post" });
+
+    const comments = await Comments.insertMany([
+      { title: "1", postId: p1.insertedId },
+      { title: "2", postId: p1.insertedId },
+      { title: "3", postId: p1.insertedId },
+      { title: "4", postId: p1.insertedId },
+      { title: "5", postId: p1.insertedId }
+    ]);
+
+    const post = await query(Posts, {
+      newestComments: {
+        $alias: "comments",
+        $: {
+          options: {
+            limit: 3
+          }
+        },
+        title: 1
+      },
+      otherComments: {
+        $alias: "comments",
+        $: {
+          options: { limit: 2 }
+        },
+        title: 1
+      }
+    }).fetchOne();
+
+    assert.isObject(post);
+    assert.lengthOf(post.newestComments, 3);
+    assert.lengthOf(post.otherComments, 2);
+    post.newestComments.forEach(comment => {
+      assert.isString(comment.title);
+    });
+    post.otherComments.forEach(comment => {
+      assert.isString(comment.title);
+    });
+  });
+
+  // Check pipeline on children collection links via hypernova
+  it("Pipeline for children should work", async () => {
+    // A has many B.
+    const Comments = A;
+    const Posts = B;
+    const Authors = C;
+
+    manyToOne(Comments, Posts, {
+      linkName: "post",
+      inversedLinkName: "comments"
+    });
+
+    manyToOne(Comments, Authors, {
+      linkName: "author",
+      inversedLinkName: "comments"
+    });
+
+    const a1 = await Authors.insertOne({ eligible: true });
+    const a2 = await Authors.insertOne({});
+    const a3 = await Authors.insertOne({});
+
+    const p1 = await Posts.insertOne({ name: "John Post" });
+
+    const comments = await Comments.insertMany([
+      { title: "1", postId: p1.insertedId, authorId: a1.insertedId },
+      { title: "2", postId: p1.insertedId, authorId: a2.insertedId },
+      { title: "3", postId: p1.insertedId, authorId: a3.insertedId },
+      { title: "4", postId: p1.insertedId, authorId: a1.insertedId },
+      { title: "5", postId: p1.insertedId, authorId: a3.insertedId }
+    ]);
+
+    const post = await query(Posts, {
+      comments: {
+        $: {
+          pipeline: [
+            lookup(Comments, "author"),
+            {
+              $match: {
+                "author.eligible": true
+              }
+            }
+          ]
+        },
+        authorId: 1
+      }
+    }).fetchOne();
+
+    assert.isObject(post);
+    assert.lengthOf(post.comments, 2);
+    post.comments.forEach(comment => {
+      assert.isTrue(idsEqual(comment.authorId, a1.insertedId));
     });
   });
 });

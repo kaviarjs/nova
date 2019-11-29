@@ -11,9 +11,10 @@ The incredible speed boost is possible thanks to the technology called Hypernova
 
 ## What it solves
 
-- It makes it bearable to use MongoDB as a relational database
-- Speeds surpassing SQL in various scenarios.
-- Works with GraphQL to avoid over-fetching
+✓ It makes it bearable to use MongoDB as a relational database
+✓ Relational Filtering/Sorting Enabled
+✓ Speeds surpassing SQL in various scenarios.
+✓ Works with GraphQL to avoid over-fetching
 
 ## Installation
 
@@ -64,6 +65,6 @@ const Query = {
   users(_, args, ctx, info) {
     // It passes arguments automatically
     return query.graphql(Posts, info).fetch();
-  },
+  }
 };
 ```

@@ -1,4 +1,4 @@
-import { QueryBody, SPECIAL_PARAM_FIELD } from "../../constants";
+import { CollectionQueryBody, SPECIAL_PARAM_FIELD } from "../../constants";
 import * as _ from "lodash";
 import { INode } from "./INode";
 import * as dot from "dot-object";
@@ -10,7 +10,7 @@ export default class FieldNode implements INode {
    * We have fields like: 1, {}, { $: {...} }, { $filter: {...} }
    * @param body
    */
-  public static canBodyRepresentAField(body: any) {
+  public static canBodyRepresentAField(body: any): boolean {
     if (body === 1 || body === true) {
       return true;
     }
@@ -42,11 +42,11 @@ export default class FieldNode implements INode {
 
   public name: any;
   public projectionOperator: any;
-  public body: number | QueryBody;
+  public body: number | CollectionQueryBody;
   public isProjectionField: boolean;
   public subfields: FieldNode[] = [];
 
-  constructor(name: string, body?: number | QueryBody) {
+  constructor(name: string, body?: number | CollectionQueryBody) {
     this.name = name;
     if (name.indexOf(".") > -1) {
       throw new Error(`Please specify the nested field as an object`);
@@ -124,7 +124,7 @@ export default class FieldNode implements INode {
    * Transforms ['a', 'b', 'c'] to { a: { b : { c: 1 }}}
    * @param parts
    */
-  public toQueryBody(parts: any[]): QueryBody {
+  public toQueryBody(parts: any[]): CollectionQueryBody {
     const object = {};
 
     let path = object;

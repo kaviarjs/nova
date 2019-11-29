@@ -70,7 +70,7 @@ export default class Linker {
    * @returns {string}
    */
   get strategy() {
-    return this.linkConfig.many ? LinkStrategy.MANY : LinkStrategy.ONE;
+    return this.linkConfig.strategy;
   }
 
   /**

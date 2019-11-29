@@ -1,5 +1,6 @@
 import * as _ from "lodash";
 import CollectionNode from "../nodes/CollectionNode";
+import { idsEqual } from "../../../__tests__/integration/helpers";
 
 /**
  *
@@ -9,7 +10,6 @@ export default function processVirtualNode(
   childCollectionNode: CollectionNode
 ) {
   const parentResults = childCollectionNode.parent.results;
-  const collection = childCollectionNode.collection;
   const linkStorageField = childCollectionNode.linkStorageField;
   const linkName = childCollectionNode.name;
   const isMany = childCollectionNode.linker.isMany();
@@ -29,7 +29,7 @@ export default function processVirtualNode(
         linkStorageField,
         childCollectionNode.results
       );
-      parentResult[linkName] = result ? [result] : [];
+      parentResult[linkName] = result ? result : [];
     });
   }
 }
@@ -38,18 +38,16 @@ function findMany(parentResult, linkStorageField, childResults) {
   return childResults.filter(childResult => {
     const linkingStorage = _.get(childResult, linkStorageField);
     if (linkingStorage) {
-      return linkingStorage.find(
-        l => l.toString() === parentResult._id.toString()
-      );
+      return linkingStorage.find(l => idsEqual(l, parentResult._id));
     }
   });
 }
 
 function findSingle(parentResult, linkStorageField, childResults) {
-  return childResults.find(childResult => {
+  return childResults.filter(childResult => {
     const linkingStorage = _.get(childResult, linkStorageField);
     return linkingStorage
-      ? linkingStorage.toString() === parentResult._id.toString()
+      ? idsEqual(linkingStorage, parentResult._id.toString())
       : false;
   });
 }

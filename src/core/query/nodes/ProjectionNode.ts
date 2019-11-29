@@ -1,6 +1,6 @@
 import * as _ from "lodash";
-import { SPECIAL_PARAM_FIELD } from "../../constants";
 import FieldNode from "./FieldNode";
+import { SPECIAL_FIELDS } from "../../constants";
 
 export default class ProjectionNode {
   public name: string;
@@ -15,7 +15,8 @@ export default class ProjectionNode {
     if (_.isObject(body)) {
       if (!FieldNode.canBodyRepresentAField(body)) {
         _.forEach(body, (value, fieldName) => {
-          if (fieldName !== SPECIAL_PARAM_FIELD) {
+          // We do not perform projection for fields such as $ or $alias
+          if (!SPECIAL_FIELDS.includes(fieldName)) {
             this.nodes.push(new ProjectionNode(fieldName, value));
           }
         });
