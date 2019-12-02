@@ -1,4 +1,3 @@
-import { CollectionQueryBody } from "./constants";
 import * as mongodb from "mongodb";
 
 export const LINK_STORAGE = Symbol("linkStorage");
