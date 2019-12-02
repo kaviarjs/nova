@@ -11,12 +11,12 @@ The incredible speed boost is possible thanks to the technology called Hypernova
 
 ## What does it solve?
 
-- ✓ It makes it a joy to use MongoDB as a relational database
-- ✓ Support for relational filtering & sorting
-- ✓ Speeds surpassing SQL in various scenarios
-- ✓ Lower bandwidth used than SQL for joined documents
-- ✓ Works with the default MongoDB Node Drivers
-- ✓ Super light-weight integration for GraphQL
+- It makes it a joy to use MongoDB as a relational database
+- Support for relational filtering & sorting
+- Speeds surpassing SQL in various scenarios
+- Lower bandwidth used than SQL for joined documents
+- Works with the default MongoDB Node Drivers
+- Super light-weight integration for GraphQL
 
 ## Installation
 
