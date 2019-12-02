@@ -3,18 +3,20 @@
 [![Build Status](https://api.travis-ci.org/kaviarjs/nova.svg?branch=master)](https://travis-ci.org/kaviarjs/nova)
 [![TypeScript](https://badges.frapsoft.com/typescript/version/typescript-next.svg?v=101)](https://github.com/ellerbrock/typescript-badges/)
 
-_Nova_ is the fetching layer on top of MongoDB Node Driver, which allows SQL-comparable speeds for retrieving relational data. [Read the whole history here](./docs/story.md)
+_Nova_ is the fetching layer on top of MongoDB Node Driver, which allows SQL-comparable speeds for retrieving relational data.
 
 GraphQL is treated as a first-class citizen, by offering ability to transform the GraphQL query into a Nova query. **You do not have to use GraphQL to use this library**
 
-The incredible speed boost is possible thanks to the technology called Hypernova, created by [Theodor Diaconu](https://www.linkedin.com/in/dtheodor/) in 2016 for Meteor. [Read more about it.](./docs/hypernova.md)
+The incredible speed boost is possible thanks to the technology called Hypernova, you can read more about it [inside the documentation](./docs/index.md#hypernova).
 
-## What it solves
+## What does it solve?
 
-✓ It makes it bearable to use MongoDB as a relational database
-✓ Relational Filtering/Sorting Enabled
-✓ Speeds surpassing SQL in various scenarios.
-✓ Works with GraphQL to avoid over-fetching
+✓ It makes it a joy to use MongoDB as a relational database
+✓ Support for relational filtering & sorting
+✓ Speeds surpassing SQL in various scenarios
+✓ Lower bandwidth used than SQL for joined documents
+✓ Works with the default MongoDB Node Drivers
+✓ Super light-weight integration for GraphQL
 
 ## Installation
 
@@ -24,7 +26,17 @@ npm i -S @kaviar/nova
 
 ## [Documentation](docs/index.md)
 
-This provides a learning curve for **Nova** and it explains all the features.
+### [Table of Contents](docs/index.md)
+
+- [Linking collections](docs/index.md#linking-collections)
+- [Query-ing](docs/index.md#query-ing)
+- [Relational Filtering and Sorting](docs/index.md#relational-filtering-and-sorting)
+- [Dynamic Filters](docs/index.md#dynamic-filters)
+- [Reducers](docs/index.md#reducers)
+- [Aliased Collections](docs/index.md#aliased-collections)
+- [GraphQL Integration](docs/index.md#graphql-integration)
+- [Limitations](docs/index.md#limitations)
+- [Hypernova](docs/index.md#hypernova)
 
 ## Sample
 
@@ -55,7 +67,7 @@ async function test() {
 }
 ```
 
-## [GraphQL](./docs/index.md)
+## [GraphQL](./docs/index.md#graphql-integration)
 
 ```js
 import { query } from "@kaviar/nova";
@@ -63,7 +75,6 @@ import { query } from "@kaviar/nova";
 const Query = {
   // Automatically fetches everything in the minimum amount of queries
   users(_, args, ctx, info) {
-    // It passes arguments automatically
     return query.graphql(Posts, info).fetch();
   }
 };
