@@ -1,11 +1,14 @@
 <p align="center">
-    <img src="nova-logo.png" alt="Logo" height="300" />
+    <img src="logo.png" alt="Logo" height="300" />
 </p>
 
 <p align="center">
-[![Build Status](https://api.travis-ci.org/kaviarjs/nova.svg?branch=master)](https://travis-ci.org/kaviarjs/nova)
-[![Coverage Status](https://coveralls.io/repos/github/kaviarjs/nova/badge.svg?branch=master)](https://coveralls.io/github/kaviarjs/nova?branch=master)
-[![TypeScript](https://badges.frapsoft.com/typescript/version/typescript-next.svg?v=101)](https://github.com/ellerbrock/typescript-badges/)
+  <a href="https://travis-ci.org/kaviarjs/nova">
+    <img src="https://api.travis-ci.org/kaviarjs/nova.svg?branch=master" />
+  </a>
+  <a href="https://coveralls.io/github/kaviarjs/nova?branch=master">
+    <img src="https://coveralls.io/repos/github/kaviarjs/nova/badge.svg?branch=master" />
+  </a>
 </p>
 
 _Nova_ is the fetching layer on top of MongoDB Node Driver, which allows SQL-comparable speeds for retrieving relational data.
