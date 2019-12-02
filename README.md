@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="logo.png" alt="Logo" height="55" />
+    <img src="logo.png" alt="Logo" height="25" />
 </p>
 
 <p align="center">
@@ -10,6 +10,9 @@
     <img src="https://coveralls.io/repos/github/kaviarjs/nova/badge.svg?branch=master" />
   </a>
 </p>
+
+<br />
+<br />
 
 _Nova_ is the fetching layer on top of MongoDB Node Driver, which allows SQL-comparable speeds for retrieving relational data.
 
