@@ -14,9 +14,9 @@
 <br />
 <br />
 
-_Nova_ is the fetching layer on top of MongoDB Node Driver, which allows SQL-comparable speeds for retrieving relational data.
+Nova is the fetching layer on top of MongoDB Node Driver, which allows SQL-comparable speeds for retrieving relational data.
 
-GraphQL is treated as a first-class citizen, by offering ability to transform the GraphQL query into a Nova query. **You do not have to use GraphQL to use this library**
+GraphQL is treated as a first-class citizen, by offering ability to transform the GraphQL query into a Nova query. **You do not have to use GraphQL to use this library**.
 
 The incredible speed boost is possible thanks to the technology called Hypernova, you can read more about it [inside the documentation](./docs/index.md#hypernova).
 
