@@ -1,9 +1,9 @@
-import { QueryBody, ReducerOption } from "./../../constants";
+import { CollectionQueryBody, ReducerOption } from "../../constants";
 import { SPECIAL_PARAM_FIELD } from "../../constants";
 import { INode } from "./INode";
 
 type ReducerNodeOptions = ReducerOption & {
-  body: QueryBody;
+  body: CollectionQueryBody;
 };
 
 export default class ReducerNode implements INode {
@@ -11,10 +11,12 @@ export default class ReducerNode implements INode {
   public props: any;
   public isSpread: boolean = false;
 
-  public reduceFunction: any;
+  public reduceFunction?: any;
+  public pipeline: any[];
+  public projection: any;
 
   // This refers to the graph dependency
-  public dependency: QueryBody;
+  public dependency: CollectionQueryBody;
 
   // This is a list of reducer nodes this uses
   public dependencies: any = [];
@@ -23,6 +25,14 @@ export default class ReducerNode implements INode {
     this.name = name;
     this.reduceFunction = options.reduce;
     this.dependency = options.dependency;
+    this.pipeline = options.pipeline || [];
+    this.projection = options.projection || {};
+
+    if (!options.projection && !this.reduceFunction) {
+      // Projection will be the reducer name
+      this.projection = { [name]: 1 };
+    }
+
     this.props = options.body[SPECIAL_PARAM_FIELD] || {};
   }
 
@@ -32,11 +42,31 @@ export default class ReducerNode implements INode {
    * @param {*} object
    * @param {*} args
    */
-  public compute(object) {
-    object[this.name] = this.reduce.call(this, object, this.props);
+  public async compute(object) {
+    if (!this.reduceFunction) {
+      return;
+    }
+
+    object[this.name] = await this.reduce.call(this, object, this.props);
   }
 
-  public reduce(object, ...args) {
+  /**
+   * The actual reduce function call
+   *
+   * @param object
+   * @param args
+   */
+  public async reduce(object, ...args) {
     return this.reduceFunction.call(this, object, ...args);
+  }
+
+  /**
+   * Adapts the final projection
+   * @param projection
+   */
+  public blendInProjection(projection) {
+    if (this.projection) {
+      Object.assign(projection, this.projection);
+    }
   }
 }

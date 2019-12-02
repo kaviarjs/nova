@@ -6,10 +6,7 @@ import { LinkStrategy } from "../Linker";
 /**
  * Assembles non-virtually linked results
  */
-export default function processDirectNode(
-  childCollectionNode: CollectionNode,
-  options: any
-) {
+export default function processDirectNode(childCollectionNode: CollectionNode) {
   const parent = childCollectionNode.parent;
   const linker = childCollectionNode.linker;
 

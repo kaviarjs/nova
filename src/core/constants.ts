@@ -1,10 +1,13 @@
-import { QueryBody } from "./constants";
+import { CollectionQueryBody } from "./constants";
 import * as mongodb from "mongodb";
 
 export const LINK_STORAGE = Symbol("linkStorage");
 export const REDUCER_STORAGE = Symbol("reducerStorage");
 export const EXPANDER_STORAGE = Symbol("expandersStorage");
 export const SPECIAL_PARAM_FIELD = "$";
+export const ALIAS_FIELD = "$alias";
+
+export const SPECIAL_FIELDS = [SPECIAL_PARAM_FIELD, ALIAS_FIELD];
 
 export type FindOptions = {
   [key: string]: any;
@@ -12,7 +15,7 @@ export type FindOptions = {
 
 export const LinkCollectionOptionsDefaults = {
   type: "one",
-  index: true,
+  index: true
 };
 
 export type LinkCollectionOptions = {
@@ -28,8 +31,10 @@ export type LinkCollectionOptions = {
 };
 
 export type ReducerOption = {
-  dependency: QueryBody;
-  reduce: (object: any, params?: any) => any;
+  dependency: CollectionQueryBody;
+  pipeline?: any[];
+  projection?: any;
+  reduce?: (object: any, params?: any) => any;
 };
 
 export type LinkOptions = {
@@ -41,19 +46,30 @@ export type ReducerOptions = {
 };
 
 export type ExpanderOptions = {
-  [key: string]: QueryBody;
+  [key: string]: CollectionQueryBody;
 };
 
 export type FieldMapOptions = {
   [key: string]: string;
 };
 
+export type Functionable<T> = ((...args: any[]) => T) | T;
+
 export type ParamaterableObject = {
-  $: {
-    [key: string]: any;
+  filters?: any;
+  options?: {
+    limit?: number;
+    skip?: number;
+    sort?: {
+      [key: string]: any;
+    };
   };
+  pipeline?: any[];
+  [key: string]: any;
 };
 
-export type QueryBody = {
-  [field: string]: number | QueryBody | ParamaterableObject;
+export type CollectionQueryBody = {
+  $?: Functionable<ParamaterableObject>;
+  $alias?: string;
+  [field: string]: string | number | CollectionQueryBody | ParamaterableObject;
 };

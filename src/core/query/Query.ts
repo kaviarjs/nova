@@ -1,13 +1,13 @@
 import { Collection } from "mongodb";
 import * as _ from "lodash";
-import { QueryBody } from "../constants";
+import { CollectionQueryBody } from "../constants";
 import CollectionNode from "./nodes/CollectionNode";
 import hypernova from "./hypernova/hypernova";
 
 export default class Query {
   public collection: Collection;
   private graph: CollectionNode;
-  private body: any;
+  public readonly body: any;
   public queryName: string;
 
   /**
@@ -16,14 +16,14 @@ export default class Query {
    * @param collection
    * @param body
    */
-  constructor(collection: Collection, body: QueryBody) {
+  constructor(collection: Collection, body: CollectionQueryBody) {
     this.collection = collection;
     this.queryName = collection.collectionName;
     this.body = _.cloneDeep(body);
     this.graph = new CollectionNode({
       collection,
       body,
-      name: "root",
+      name: "root"
     });
   }
 
@@ -45,13 +45,5 @@ export default class Query {
     const results = await this.fetch();
 
     return _.first(results);
-  }
-
-  /**
-   * Gets the count of matching elements.
-   * @returns {integer}
-   */
-  public getCount() {
-    return this.collection.find(this.body.$filters || {}, {}).count();
   }
 }

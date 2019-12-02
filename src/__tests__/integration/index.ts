@@ -6,7 +6,7 @@ import {
   query,
   clear,
   addExpanders,
-  addReducers,
+  addReducers
 } from "../../core/api";
 import { client } from "../connection";
 import { Collection } from "mongodb";
@@ -51,7 +51,7 @@ describe("Main tests", async function() {
 
   it("[Many - Direct] Should work with many and many-inversed", async () => {
     manyToMany(A, B, {
-      linkName: "bs",
+      linkName: "bs"
     });
 
     const b1 = await B.insertOne({ number: 200 });
@@ -59,13 +59,13 @@ describe("Main tests", async function() {
     const b3 = await B.insertOne({ number: 500 });
     await A.insertOne({
       number: 100,
-      bsIds: [b1, b2, b3].map(b => b.insertedId),
+      bsIds: [b1, b2, b3].map(b => b.insertedId)
     });
 
     let result = await query(A, {
       bs: {
-        number: 1,
-      },
+        number: 1
+      }
     }).fetchOne();
 
     assert.isUndefined(result.bIds);
@@ -79,21 +79,22 @@ describe("Main tests", async function() {
   it("[Many - Inversed] Simple Query", async () => {
     manyToMany(A, B, {
       linkName: "bs",
-      inversedLinkName: "as",
+      inversedLinkName: "as"
     });
 
     const b1 = await B.insertOne({ number: 200 });
     const b2 = await B.insertOne({ number: 300 });
     const b3 = await B.insertOne({ number: 500 });
+
     await A.insertOne({
       number: 100,
-      bsIds: [b1, b2, b3].map(b => b.insertedId),
+      bsIds: [b1, b2, b3].map(b => b.insertedId)
     });
 
     let result = await query(A, {
       bs: {
-        number: 1,
-      },
+        number: 1
+      }
     }).fetchOne();
 
     assert.isUndefined(result.bIds);
@@ -105,8 +106,8 @@ describe("Main tests", async function() {
 
     result = await query(B, {
       as: {
-        number: 1,
-      },
+        number: 1
+      }
     }).fetchOne();
 
     assert.isArray(result.as);
@@ -119,23 +120,23 @@ describe("Main tests", async function() {
   it("[One - Direct] Simple Query", async () => {
     manyToOne(A, B, {
       linkName: "b",
-      inversedLinkName: "a",
+      inversedLinkName: "a"
     });
 
     const b = await B.insertOne({
-      name: "John",
+      name: "John"
     });
 
     const a = await A.insertOne({
       bId: b.insertedId,
-      number: 200,
+      number: 200
     });
 
     let result: any = await query(A, {
       b: {
-        name: 1,
+        name: 1
       },
-      _id: 1,
+      _id: 1
     }).fetchOne();
 
     assert.isUndefined(result.bId);
@@ -148,22 +149,22 @@ describe("Main tests", async function() {
   it("[One - Inversed] Simple Query", async () => {
     manyToOne(A, B, {
       linkName: "b",
-      inversedLinkName: "a",
+      inversedLinkName: "a"
     });
 
     const b = await B.insertOne({
-      name: "John",
+      name: "John"
     });
 
     const a = await A.insertOne({
       bId: b.insertedId,
-      number: 200,
+      number: 200
     });
 
     const result = await query(B, {
       a: {
-        number: 1,
-      },
+        number: 1
+      }
     }).fetchOne();
 
     assert.isObject(result);
@@ -175,22 +176,22 @@ describe("Main tests", async function() {
   it("[OneToMAny - Inversed] uniqueness and one result", async () => {
     oneToMany(A, B, {
       inversedLinkName: "a",
-      linkName: "bs",
+      linkName: "bs"
     });
 
     const b = await B.insertOne({
-      name: "John",
+      name: "John"
     });
 
     const a = await A.insertOne({
       bsIds: [b.insertedId],
-      number: 200,
+      number: 200
     });
 
     const result = await query(B, {
       a: {
-        number: 1,
-      },
+        number: 1
+      }
     }).fetchOne();
 
     assert.isObject(result);
@@ -202,22 +203,22 @@ describe("Main tests", async function() {
   it("[One - Inversed] uniqueness and one result", async () => {
     oneToOne(A, B, {
       linkName: "b",
-      inversedLinkName: "a",
+      inversedLinkName: "a"
     });
 
     const b = await B.insertOne({
-      name: "John",
+      name: "John"
     });
 
     const a = await A.insertOne({
       bId: b.insertedId,
-      number: 200,
+      number: 200
     });
 
     const result = await query(B, {
       a: {
-        number: 1,
-      },
+        number: 1
+      }
     }).fetchOne();
 
     assert.isObject(result);
@@ -229,24 +230,24 @@ describe("Main tests", async function() {
   it("[One - Direct] Should work with fields as objects", async () => {
     manyToOne(A, B, {
       linkName: "b",
-      inversedLinkName: "a",
+      inversedLinkName: "a"
     });
 
     const b = await B.insertOne({
-      name: "John",
+      name: "John"
     });
 
     const a = await A.insertOne({
       bId: b.insertedId,
-      number: 200,
+      number: 200
     });
 
     let result: any = await query(A, {
       b: {
-        name: {},
+        name: {}
       },
       bId: {},
-      _id: {},
+      _id: {}
     }).fetchOne();
 
     assert.isDefined(result.bId);
@@ -257,7 +258,7 @@ describe("Main tests", async function() {
   it("[Direct] Should work with filters and custom options", async () => {
     manyToMany(A, B, {
       linkName: "bs",
-      inversedLinkName: "as",
+      inversedLinkName: "as"
     });
 
     const b1 = await B.insertOne({ number: 200 });
@@ -266,28 +267,28 @@ describe("Main tests", async function() {
 
     await A.insertOne({
       number: 100,
-      bsIds: [b1, b2, b3].map(b => b.insertedId),
+      bsIds: [b1, b2, b3].map(b => b.insertedId)
     });
     await A.insertOne({
       number: 200,
-      bsIds: [b1, b2, b3].map(b => b.insertedId),
+      bsIds: [b1, b2, b3].map(b => b.insertedId)
     });
     await A.insertOne({ number: 300, bsIds: [b3].map(b => b.insertedId) });
 
     let result: any = await query(A, {
       $: {
         filters: {
-          number: 100,
-        },
+          number: 100
+        }
       },
       bs: {
         $: {
           filters: {
-            number: { $gte: 300 },
-          },
+            number: { $gte: 300 }
+          }
         },
-        number: 1,
-      },
+        number: 1
+      }
     }).fetch();
 
     assert.lengthOf(result, 1);
@@ -306,7 +307,7 @@ describe("Main tests", async function() {
   it("[Virtual] Should work with filters and custom options", async () => {
     manyToMany(A, B, {
       linkName: "bs",
-      inversedLinkName: "as",
+      inversedLinkName: "as"
     });
 
     const b1 = await B.insertOne({ number: 200 });
@@ -315,34 +316,34 @@ describe("Main tests", async function() {
 
     await A.insertOne({
       bsIds: [b1, b2, b3].map(b => b.insertedId),
-      number: 100,
+      number: 100
     });
     await A.insertOne({
       bsIds: [b1, b2, b3].map(b => b.insertedId),
-      number: 200,
+      number: 200
     });
     await A.insertOne({ number: 300, bsIds: [b3].map(b => b.insertedId) });
 
     const result = await query(B, {
       $: {
         filters: {
-          number: { $gte: 300 }, // only matching b2,b3
+          number: { $gte: 300 } // only matching b2,b3
         },
         options: {
           sort: {
-            number: -1,
-          },
-        },
+            number: -1
+          }
+        }
       },
       _id: 1,
       as: {
         $: {
           filters: {
-            number: { $gte: 200 },
-          },
+            number: { $gte: 200 }
+          }
         },
-        number: 1,
-      },
+        number: 1
+      }
     }).fetch();
 
     assert.lengthOf(result, 2);
@@ -360,18 +361,18 @@ describe("Main tests", async function() {
   it("Should work with expanding the field from an object, one-level", async () => {
     manyToOne(A, B, {
       linkName: "b",
-      inversedLinkName: "as",
+      inversedLinkName: "as"
     });
 
     const b1 = await B.insertOne({
-      profile: { firstName: "john", lastName: "smith", number: "07xxxxxxxxxx" },
+      profile: { firstName: "john", lastName: "smith", number: "07xxxxxxxxxx" }
     });
 
     let bResult = await query(B, {
       profile: {
         firstName: 1,
-        number: 1,
-      },
+        number: 1
+      }
     }).fetchOne();
 
     assert.isObject(bResult.profile);
@@ -380,15 +381,15 @@ describe("Main tests", async function() {
     assert.isString(bResult.profile.number);
 
     const a1 = await A.insertOne({
-      bId: b1.insertedId,
+      bId: b1.insertedId
     });
 
     const result = await query(A, {
       b: {
         profile: {
-          firstName: 1,
-        },
-      },
+          firstName: 1
+        }
+      }
     }).fetchOne();
 
     bResult = result.b;
@@ -402,7 +403,7 @@ describe("Main tests", async function() {
   it("should work when we have many to many and filter in query", async () => {
     manyToMany(A, B, {
       linkName: "bs",
-      inversedLinkName: "as",
+      inversedLinkName: "as"
     });
 
     const a1 = await A.insertOne({ n: 1 });
@@ -415,33 +416,33 @@ describe("Main tests", async function() {
 
     await A.updateOne(
       {
-        _id: a1.insertedId,
+        _id: a1.insertedId
       },
       {
         $set: {
-          bsIds: [b2.insertedId, b3.insertedId],
-        },
+          bsIds: [b2.insertedId, b3.insertedId]
+        }
       }
     );
     await A.updateOne(
       {
-        _id: a2.insertedId,
+        _id: a2.insertedId
       },
       {
         $set: {
-          bsIds: [b1.insertedId, b3.insertedId],
-        },
+          bsIds: [b1.insertedId, b3.insertedId]
+        }
       }
     );
 
     const result = await query(A, {
       $: {
-        options: { sort: { n: 1 } },
+        options: { sort: { n: 1 } }
       },
       n: 1,
       bs: {
-        n: 1,
-      },
+        n: 1
+      }
     }).fetch();
 
     assert.lengthOf(result, 3);
@@ -455,22 +456,22 @@ describe("Main tests", async function() {
       fullName: {
         profile: {
           firstName: 1,
-          lastName: 1,
-        },
-      },
+          lastName: 1
+        }
+      }
     });
 
     const a1 = await A.insertOne({
       profile: {
         firstName: 1,
         lastName: 1,
-        number: 1,
-      },
+        number: 1
+      }
     });
 
     const result: any = await query(A, {
       _id: 1,
-      fullName: 1,
+      fullName: 1
     }).fetchOne();
 
     assert.isUndefined(result.fullName);
@@ -485,25 +486,25 @@ describe("Main tests", async function() {
       fullName: {
         profile: {
           firstName: 1,
-          lastName: 1,
-        },
-      },
+          lastName: 1
+        }
+      }
     });
 
     const a1 = await A.insertOne({
       profile: {
         firstName: 1,
         lastName: 1,
-        number: 1,
-      },
+        number: 1
+      }
     });
 
     const result: any = await query(A, {
       _id: 1,
       profile: {
-        firstName: 1,
+        firstName: 1
       },
-      fullName: 1,
+      fullName: 1
     }).fetchOne();
 
     assert.isUndefined(result.fullName);
@@ -516,39 +517,39 @@ describe("Main tests", async function() {
   it("[Expanders] Should expand and merge into linked elements", async () => {
     manyToOne(A, B, {
       linkName: "b",
-      inversedLinkName: "as",
+      inversedLinkName: "as"
     });
 
     addExpanders(A, {
       fullName: {
         b: {
           profile: {
-            firstName: 1,
-          },
-        },
-      },
+            firstName: 1
+          }
+        }
+      }
     });
 
     const b1 = await B.insertOne({
       profile: {
         firstName: 1,
         lastName: 1,
-        number: 1,
-      },
+        number: 1
+      }
     });
 
     const a1 = await A.insertOne({
       profile: {
         firstName: 1,
         lastName: 1,
-        number: 1,
+        number: 1
       },
-      bId: b1.insertedId,
+      bId: b1.insertedId
     });
 
     const result: any = await query(A, {
       _id: 1,
-      fullName: 1,
+      fullName: 1
     }).fetchOne();
 
     assert.isUndefined(result.fullName);
@@ -563,26 +564,26 @@ describe("Main tests", async function() {
         dependency: {
           profile: {
             firstName: 1,
-            lastName: 1,
-          },
+            lastName: 1
+          }
         },
-        reduce(obj, params) {
+        async reduce(obj, params) {
           return `${obj.profile.firstName} ${obj.profile.lastName}`;
-        },
-      },
+        }
+      }
     });
 
     const a1 = await A.insertOne({
       profile: {
         firstName: 1,
         lastName: 1,
-        number: 1,
-      },
+        number: 1
+      }
     });
 
     const result: any = await query(A, {
       _id: 1,
-      fullName: 1,
+      fullName: 1
     }).fetchOne();
 
     assert.equal(`1 1`, result.fullName);
@@ -592,7 +593,7 @@ describe("Main tests", async function() {
   it("[Reducers] Should work with nested expansion", async () => {
     manyToOne(A, B, {
       linkName: "b",
-      inversedLinkName: "as",
+      inversedLinkName: "as"
     });
 
     addReducers(A, {
@@ -601,30 +602,30 @@ describe("Main tests", async function() {
           b: {
             profile: {
               firstName: 1,
-              lastName: 1,
-            },
-          },
+              lastName: 1
+            }
+          }
         },
-        reduce(obj, params) {
+        async reduce(obj, params) {
           return `${obj.b.profile.firstName} ${obj.b.profile.lastName}`;
-        },
-      },
+        }
+      }
     });
 
     const b1 = await B.insertOne({
       profile: {
         firstName: "a",
         lastName: "b",
-        number: 500,
-      },
+        number: 500
+      }
     });
     const a1 = await A.insertOne({
-      bId: b1.insertedId,
+      bId: b1.insertedId
     });
 
     const result: any = await query(A, {
       _id: 1,
-      fullName: 1,
+      fullName: 1
     }).fetchOne();
 
     assert.equal(`a b`, result.fullName);
@@ -634,7 +635,7 @@ describe("Main tests", async function() {
   it("[Reducers] Should work with nested expansion and keep what I request", async () => {
     manyToOne(A, B, {
       linkName: "b",
-      inversedLinkName: "as",
+      inversedLinkName: "as"
     });
 
     addReducers(A, {
@@ -643,35 +644,35 @@ describe("Main tests", async function() {
           b: {
             profile: {
               firstName: 1,
-              lastName: 1,
-            },
-          },
+              lastName: 1
+            }
+          }
         },
         reduce(obj, params) {
           return `${obj.b.profile.firstName} ${obj.b.profile.lastName}`;
-        },
-      },
+        }
+      }
     });
 
     const b1 = await B.insertOne({
       profile: {
         firstName: "a",
         lastName: "b",
-        number: 500,
-      },
+        number: 500
+      }
     });
     const a1 = await A.insertOne({
-      bId: b1.insertedId,
+      bId: b1.insertedId
     });
 
     const result: any = await query(A, {
       _id: 1,
       b: {
         profile: {
-          number: 1,
-        },
+          number: 1
+        }
       },
-      fullName: 1,
+      fullName: 1
     }).fetchOne();
 
     assert.equal(`a b`, result.fullName);
@@ -685,35 +686,35 @@ describe("Main tests", async function() {
     addReducers(A, {
       fullName: {
         dependency: {
-          inversedName: 1,
+          inversedName: 1
         },
         reduce(obj, params) {
           return `prefix ${obj.inversedName}`;
-        },
+        }
       },
       inversedName: {
         dependency: {
           profile: {
-            firstName: 1,
-          },
+            firstName: 1
+          }
         },
         reduce(obj) {
           return `inversed ${obj.profile.firstName}`;
-        },
-      },
+        }
+      }
     });
 
     const a1 = await A.insertOne({
       profile: {
         firstName: "Aloha",
         lastName: "b",
-        number: 500,
-      },
+        number: 500
+      }
     });
 
     const result: any = await query(A, {
       _id: 1,
-      fullName: 1,
+      fullName: 1
     }).fetchOne();
 
     assert.equal(`prefix inversed Aloha`, result.fullName);
@@ -725,55 +726,57 @@ describe("Main tests", async function() {
       fullName: {
         dependency: {
           profile: {
-            firstName: 1,
-          },
+            firstName: 1
+          }
         },
         reduce(obj, params) {
           return `${obj.profile.firstName} ${params.lastName}`;
-        },
-      },
+        }
+      }
     });
 
     const a1 = await A.insertOne({
       profile: {
         firstName: "John",
         lastName: "b",
-        number: 500,
-      },
+        number: 500
+      }
     });
 
     const result: any = await query(A, {
       _id: 1,
       fullName: {
         $: {
-          lastName: "Smith",
-        },
-      },
+          lastName: "Smith"
+        }
+      }
     }).fetchOne();
 
     assert.equal(`John Smith`, result.fullName);
   });
 
-  it("[Projection Fields] Should work with $elemMatch", async () => {
+  it("[Projection Fields] Should work with projection $filter", async () => {
     await A.insertOne({
       patients: [
         { name: "Konga", bloodPressure: 20 },
         { name: "Klara", bloodPressure: 50 },
-        { name: "Kevara", bloodPressure: 50 },
-      ],
+        { name: "Kevara", bloodPressure: 50 }
+      ]
     });
 
     const result: any = await query(A, {
       _id: 1,
       patients: {
-        $elemMatch: {
-          bloodPressure: { $gte: 50 },
-        },
-      },
+        $filter: {
+          input: "$patients",
+          as: "patient",
+          cond: { $gte: ["$$patient.bloodPressure", 50] }
+        }
+      }
     }).fetchOne();
 
     assert.isArray(result.patients);
-    assert.lengthOf(result.patients, 1);
+    assert.lengthOf(result.patients, 2);
     result.patients.forEach(patient => {
       assert.isTrue(patient.bloodPressure >= 50);
     });
@@ -783,25 +786,25 @@ describe("Main tests", async function() {
     oneToOne(A, B, {
       field: "nested.linkId",
       inversedLinkName: "a",
-      linkName: "b",
+      linkName: "b"
     });
 
     const b1 = await B.insertOne({
-      test: "123",
+      test: "123"
     });
 
     await A.insertOne({
       nested: {
-        linkId: b1.insertedId,
+        linkId: b1.insertedId
       },
-      number: 123,
+      number: 123
     });
 
     const result: any = await query(A, {
       _id: 1,
       b: {
-        test: 1,
-      },
+        test: 1
+      }
     }).fetchOne();
 
     assert.isObject(result.b);
@@ -809,8 +812,8 @@ describe("Main tests", async function() {
 
     const result2: any = await query(B, {
       a: {
-        number: {},
-      },
+        number: {}
+      }
     }).fetchOne();
 
     assert.isObject(result2.a);
@@ -821,28 +824,28 @@ describe("Main tests", async function() {
     manyToMany(A, B, {
       field: "nested.linkIds",
       inversedLinkName: "as",
-      linkName: "bs",
+      linkName: "bs"
     });
 
     const b1 = await B.insertOne({
-      test: "123",
+      test: "123"
     });
     const b2 = await B.insertOne({
-      test: "123",
+      test: "123"
     });
 
     await A.insertOne({
       nested: {
-        linkIds: [b1.insertedId, b2.insertedId],
+        linkIds: [b1.insertedId, b2.insertedId]
       },
-      number: 123,
+      number: 123
     });
 
     const result: any = await query(A, {
       _id: 1,
       bs: {
-        test: 1,
-      },
+        test: 1
+      }
     }).fetchOne();
 
     assert.isArray(result.bs);
@@ -850,8 +853,8 @@ describe("Main tests", async function() {
 
     const result2: any = await query(B, {
       as: {
-        number: {},
-      },
+        number: {}
+      }
     }).fetch();
 
     result2.forEach(r => {
@@ -864,22 +867,22 @@ describe("Main tests", async function() {
     manyToMany(A, B, {
       field: "whateverIds",
       inversedLinkName: "as",
-      linkName: "bs",
+      linkName: "bs"
     });
     manyToOne(A, C, {
       field: "cId",
       inversedLinkName: "as",
-      linkName: "c",
+      linkName: "c"
     });
     oneToOne(A, D, {
       field: "dId",
       inversedLinkName: "a",
-      linkName: "d",
+      linkName: "d"
     });
     oneToMany(A, E, {
       field: "eIds",
       inversedLinkName: "a",
-      linkName: "es",
+      linkName: "es"
     });
 
     await A.insertOne({ n: 10 });
@@ -890,17 +893,17 @@ describe("Main tests", async function() {
     const a = await query(A, {
       _id: 1,
       bs: {
-        _id: 1,
+        _id: 1
       },
       c: {
-        _id: 1,
+        _id: 1
       },
       d: {
-        _id: 1,
+        _id: 1
       },
       es: {
-        _id: 1,
-      },
+        _id: 1
+      }
     }).fetchOne();
 
     assert.isNull(a.c);
@@ -913,8 +916,8 @@ describe("Main tests", async function() {
     const b = await query(B, {
       _id: 1,
       as: {
-        _id: 1,
-      },
+        _id: 1
+      }
     }).fetchOne();
 
     assert.isArray(b.as);
@@ -923,8 +926,8 @@ describe("Main tests", async function() {
     const c = await query(C, {
       _id: 1,
       as: {
-        _id: 1,
-      },
+        _id: 1
+      }
     }).fetchOne();
 
     assert.isArray(c.as);
@@ -933,8 +936,8 @@ describe("Main tests", async function() {
     const d = await query(D, {
       _id: 1,
       a: {
-        _id: 1,
-      },
+        _id: 1
+      }
     }).fetchOne();
 
     assert.isNull(d.a);
@@ -942,8 +945,8 @@ describe("Main tests", async function() {
     const e = await query(D, {
       _id: 1,
       a: {
-        _id: 1,
-      },
+        _id: 1
+      }
     }).fetchOne();
 
     assert.isNull(e.a);
@@ -955,22 +958,22 @@ describe("Main tests", async function() {
     manyToMany(A, B, {
       field: "whateverIds",
       inversedLinkName: "as",
-      linkName: "bs",
+      linkName: "bs"
     });
     manyToOne(A, C, {
       field: "cId",
       inversedLinkName: "as",
-      linkName: "c",
+      linkName: "c"
     });
     oneToOne(A, D, {
       field: "dId",
       inversedLinkName: "a",
-      linkName: "d",
+      linkName: "d"
     });
     oneToMany(A, E, {
       field: "eIds",
       inversedLinkName: "a",
-      linkName: "es",
+      linkName: "es"
     });
 
     await A.insertOne({
@@ -978,7 +981,7 @@ describe("Main tests", async function() {
       whateverIds: 123,
       cId: { obj: 1 },
       eIds: [null],
-      dId: null,
+      dId: null
     });
     await B.insertOne({ n: 10 });
     await C.insertOne({ n: 10 });
@@ -987,17 +990,17 @@ describe("Main tests", async function() {
     const a = await query(A, {
       _id: 1,
       bs: {
-        _id: 1,
+        _id: 1
       },
       c: {
-        _id: 1,
+        _id: 1
       },
       d: {
-        _id: 1,
+        _id: 1
       },
       es: {
-        _id: 1,
-      },
+        _id: 1
+      }
     }).fetchOne();
 
     assert.isNull(a.c);
@@ -1010,8 +1013,8 @@ describe("Main tests", async function() {
     const b = await query(B, {
       _id: 1,
       as: {
-        _id: 1,
-      },
+        _id: 1
+      }
     }).fetchOne();
 
     assert.isArray(b.as);
@@ -1020,8 +1023,8 @@ describe("Main tests", async function() {
     const c = await query(C, {
       _id: 1,
       as: {
-        _id: 1,
-      },
+        _id: 1
+      }
     }).fetchOne();
 
     assert.isArray(c.as);
@@ -1030,8 +1033,8 @@ describe("Main tests", async function() {
     const d = await query(D, {
       _id: 1,
       a: {
-        _id: 1,
-      },
+        _id: 1
+      }
     }).fetchOne();
 
     assert.isNull(d.a);
@@ -1039,12 +1042,52 @@ describe("Main tests", async function() {
     const e = await query(D, {
       _id: 1,
       a: {
-        _id: 1,
-      },
+        _id: 1
+      }
     }).fetchOne();
 
     assert.isNull(e.a);
   });
 
-  // limit/skip/sort in nested links
+  it("should allow limits and skips and sorts in nested direct links", async () => {
+    const Posts = A;
+    const Comments = B;
+
+    manyToOne(Comments, Posts, {
+      linkName: "post",
+      inversedLinkName: "comments"
+    });
+
+    const p1 = await Posts.insertOne({});
+
+    for (let i = 0; i < 50; i++) {
+      await Comments.insertOne({
+        number: i,
+        postId: p1.insertedId
+      });
+    }
+
+    const post = await query(Posts, {
+      _id: 1,
+      comments: {
+        $: {
+          options: {
+            sort: {
+              number: -1
+            },
+            limit: 10,
+            skip: 10
+          }
+        },
+        number: 1,
+        _id: 1
+      }
+    }).fetchOne();
+
+    assert.isObject(post);
+
+    assert.lengthOf(post.comments, 10);
+    assert.equal(post.comments[0].number, 39);
+    assert.equal(post.comments[9].number, 30);
+  });
 });

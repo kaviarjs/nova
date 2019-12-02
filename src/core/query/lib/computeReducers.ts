@@ -1,9 +1,10 @@
 import * as _ from "lodash";
+import CollectionNode from "../nodes/CollectionNode";
 
-export default function applyReducers(root) {
-  root.collectionNodes.forEach(node => {
-    applyReducers(node);
-  });
+export default async function applyReducers(root: CollectionNode) {
+  for (const childCollectionNode of root.collectionNodes) {
+    await applyReducers(childCollectionNode);
+  }
 
   const processedReducers = [];
   const reducersQueue = [...root.reducerNodes];
@@ -19,18 +20,18 @@ export default function applyReducers(root) {
         processedReducers.includes(dep)
       );
       if (allDependenciesComputed) {
-        root.results.forEach(result => {
-          reducerNode.compute(result);
-        });
+        for (const result of root.results) {
+          await reducerNode.compute(result);
+        }
         processedReducers.push(reducerNode.name);
       } else {
         // Move it at the end of the queue
         reducersQueue.push(reducerNode);
       }
     } else {
-      root.results.forEach(result => {
-        reducerNode.compute(result);
-      });
+      for (const result of root.results) {
+        await reducerNode.compute(result);
+      }
 
       processedReducers.push(reducerNode);
     }

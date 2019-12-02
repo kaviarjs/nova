@@ -3,7 +3,13 @@ import { Collection } from "mongodb";
 import { addLinks } from "../../core/api";
 
 function generateRandomId() {
-  return Math.random().toString();
+  return Math.random()
+    .toString()
+    .slice(2);
+}
+
+export function idsEqual(id1, id2) {
+  return id1.toString() === id2.toString();
 }
 
 export async function log(dataSet) {
