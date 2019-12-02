@@ -81,28 +81,6 @@ export default class FieldNode implements INode {
     Object.assign(projection, dot.dot(obj));
   }
 
-  public addField(fieldName): FieldNode {
-    const parts = fieldName.split(".");
-    const node = new FieldNode(parts[0], this.toQueryBody(parts.slice(1)));
-
-    return node;
-  }
-
-  public hasField(fieldName): boolean {
-    const parts = fieldName.split(".");
-    const foundField = this.subfields.find(node => node.name === fieldName);
-
-    if (!foundField) {
-      return false;
-    }
-
-    if (parts.length === 1) {
-      return true;
-    }
-
-    return foundField.hasField(parts.slice(1).join("."));
-  }
-
   /**
    * This works for composed fields that have subfields
    */

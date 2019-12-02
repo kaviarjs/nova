@@ -194,24 +194,11 @@ export default class CollectionNode implements INode {
   }
 
   /**
-   * Tests if it has a field including nesting
-   *
    * @param fieldName
    * @returns {boolean}
    */
   public hasField(fieldName) {
-    const parts = fieldName.split(".");
-    const currentField = this.getFirstLevelField(parts[0]);
-
-    if (currentField) {
-      if (parts.length === 1 || currentField.subfields.length === 0) {
-        return true;
-      }
-
-      return currentField.hasField(parts.slice(1).join("."));
-    }
-
-    return false;
+    return this.fieldNodes.find(fieldNode => fieldNode.name === fieldName);
   }
 
   /**
@@ -449,6 +436,11 @@ export default class CollectionNode implements INode {
     this.blendReducers();
   }
 
+  /**
+   *
+   * @param fieldName
+   * @param body
+   */
   private addField(fieldName: string, body) {
     if (fieldName.indexOf(".") > -1) {
       // transform 'profile.firstName': body => { "profile" : { "firstName": body } }
