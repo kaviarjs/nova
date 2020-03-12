@@ -41,7 +41,7 @@
     "graphql-subscriptions": "^1.1.0",
     "graphql-tag": "^2.10.1",
     "istanbul": "^1.0.0-alpha.2",
-    "mocha": "^6.1.1",
+    "mocha": "6.1.1",
     "mongodb": "^3.3.3",
     "mongoose": "^5.7.5",
     "remap-istanbul": "^0.9.1",
