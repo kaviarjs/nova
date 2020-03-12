@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2017",
-    "allowJs": true,
+    "allowJs": false,
     "module": "commonjs",
     "moduleResolution": "node",
     "sourceMap": true,
@@ -12,6 +12,7 @@
     "allowSyntheticDefaultImports": true,
     "pretty": true,
     "removeComments": true,
+    "declaration": true,
     "typeRoots": ["node_modules/@types"]
   },
 
