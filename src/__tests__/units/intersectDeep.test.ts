@@ -18,7 +18,7 @@ describe("intersectDeep()", () => {
       }
     };
 
-    const result = intersectDeep(requestBody, intersectBody);
+    const result: any = intersectDeep(requestBody, intersectBody);
 
     assert.isDefined(result.firstName);
     assert.isUndefined(result.lastName);
@@ -40,7 +40,7 @@ describe("intersectDeep()", () => {
       }
     };
 
-    const result = intersectDeep(requestBody, intersectBody);
+    const result: any = intersectDeep(requestBody, intersectBody);
 
     assert.isObject(result.profile);
     assert.isObject(result.profile.services);
@@ -56,7 +56,7 @@ describe("intersectDeep()", () => {
       firstName: {}
     };
 
-    const result = intersectDeep(requestBody, intersectBody);
+    const result: any = intersectDeep(requestBody, intersectBody);
 
     assert.isDefined(result.firstName);
   });
