@@ -84,12 +84,16 @@ export function getLinker(
   collection: mongodb.Collection,
   name: string
 ): Linker {
-  if (collection[LINK_STORAGE]) {
-    return collection[LINK_STORAGE][name];
+  if(collection[LINK_STORAGE]) {
+    if(collection[LINK_STORAGE][name]) {
+      return collection[LINK_STORAGE][name];
+    } else {
+      throw new Error(
+          `Link "${name}" is not found in collection: "${collection.collectionName}"`
+        );
+    }
   } else {
-    throw new Error(
-      `Link "${name}" as not found in collection: "${collection.collectionName}"`
-    );
+    throw new Error(`There are no links in collection: "${collection.collectionName}`);
   }
 }
 
@@ -99,6 +103,8 @@ export function hasLinker(
 ): boolean {
   if (collection[LINK_STORAGE]) {
     return Boolean(collection[LINK_STORAGE][name]);
+  } else {
+    return false;
   }
 }
 
@@ -143,7 +149,7 @@ export function addReducers(
   Object.keys(data).forEach(reducerName => {
     const reducerConfig = data[reducerName];
 
-    if (getLinker(collection, reducerName)) {
+    if (hasLinker(collection, reducerName)) {
       throw new Error(
         `You cannot add the reducer with name: ${reducerName} because it is already defined as a link in ${collection.collectionName} collection`
       );
