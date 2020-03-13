@@ -84,16 +84,12 @@ export function getLinker(
   collection: mongodb.Collection,
   name: string
 ): Linker {
-  if(collection[LINK_STORAGE]) {
-    if(collection[LINK_STORAGE][name]) {
-      return collection[LINK_STORAGE][name];
-    } else {
-      throw new Error(
-          `Link "${name}" is not found in collection: "${collection.collectionName}"`
-        );
-    }
+  if (collection[LINK_STORAGE] && collection[LINK_STORAGE][name]) {
+    return collection[LINK_STORAGE][name];
   } else {
-    throw new Error(`There are no links in collection: "${collection.collectionName}`);
+    throw new Error(
+      `Link "${name}" is not found in collection: "${collection.collectionName}"`
+    );
   }
 }
 
