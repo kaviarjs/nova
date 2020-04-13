@@ -1,6 +1,4 @@
-<p align="center">
-    <img src="logo.png" alt="Logo" height="25" />
-</p>
+<h1 align="center">KAVIAR NOVA</h1>
 
 <p align="center">
   <a href="https://travis-ci.org/kaviarjs/nova">
@@ -87,6 +85,6 @@ const Query = {
   // Automatically fetches everything in the minimum amount of queries
   users(_, args, ctx, info) {
     return query.graphql(Posts, info).fetch();
-  }
+  },
 };
 ```
