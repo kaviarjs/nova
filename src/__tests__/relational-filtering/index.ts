@@ -1,7 +1,12 @@
 import { query, clear, lookup, addReducers } from "../../core/api";
 import { getRandomCollection, idsEqual } from "../integration/helpers";
 import { Collection } from "mongodb";
-import { oneToMany, manyToMany, oneToOne, manyToOne } from "../../core/utils";
+import {
+  oneToMany,
+  manyToMany,
+  oneToOne,
+  manyToOne,
+} from "../../core/quickLinkers";
 import { assert } from "chai";
 
 describe("Relational Filtering", () => {
@@ -11,7 +16,7 @@ describe("Relational Filtering", () => {
   let D: Collection;
   let E: Collection;
 
-  before(async () => {
+  beforeAll(async () => {
     A = await getRandomCollection("A");
     B = await getRandomCollection("B");
     C = await getRandomCollection("C");
@@ -27,14 +32,14 @@ describe("Relational Filtering", () => {
     await D.deleteMany({});
     await E.deleteMany({});
 
-    [A, B, C, D, E].forEach(coll => clear(coll));
+    [A, B, C, D, E].forEach((coll) => clear(coll));
   });
 
   it("M:M:D - Simple filtering of nested collection", async () => {
     // A has many B.
     manyToMany(A, B, {
       linkName: "bs",
-      inversedLinkName: "as"
+      inversedLinkName: "as",
     });
 
     const b1 = await B.insertOne({ name: "B1", number: 5 });
@@ -43,17 +48,17 @@ describe("Relational Filtering", () => {
 
     const a1 = await A.insertOne({
       name: "A1",
-      bsIds: [b1.insertedId, b2.insertedId]
+      bsIds: [b1.insertedId, b2.insertedId],
     });
 
     const a2 = await A.insertOne({
       name: "A2",
-      bsIds: [b2.insertedId, b3.insertedId]
+      bsIds: [b2.insertedId, b3.insertedId],
     });
 
     const a3 = await A.insertOne({
       name: "A3",
-      bsIds: [b1.insertedId]
+      bsIds: [b1.insertedId],
     });
 
     // We are looking for A's which have exactly 2 B's
@@ -64,16 +69,16 @@ describe("Relational Filtering", () => {
           {
             $match: {
               bs: {
-                $size: 2
-              }
-            }
-          }
-        ]
+                $size: 2,
+              },
+            },
+          },
+        ],
       },
       _id: 1,
       bs: {
-        _id: 1
-      }
+        _id: 1,
+      },
     }).fetch();
 
     assert.lengthOf(result, 2);
@@ -86,16 +91,16 @@ describe("Relational Filtering", () => {
           {
             $match: {
               as: {
-                $size: 2
-              }
-            }
-          }
-        ]
+                $size: 2,
+              },
+            },
+          },
+        ],
       },
       _id: 1,
       as: {
-        _id: 1
-      }
+        _id: 1,
+      },
     }).fetch();
 
     assert.lengthOf(result2, 2);
@@ -108,7 +113,7 @@ describe("Relational Filtering", () => {
 
     oneToOne(Users, BankAccounts, {
       linkName: "bankAccount",
-      inversedLinkName: "user"
+      inversedLinkName: "user",
     });
 
     const b1 = await BankAccounts.insertOne({ name: "B1", amount: 500 });
@@ -117,12 +122,12 @@ describe("Relational Filtering", () => {
     const u1 = await Users.insertOne({
       name: "B1",
       number: 5,
-      bankAccountId: b1.insertedId
+      bankAccountId: b1.insertedId,
     });
     const u2 = await Users.insertOne({
       name: "B1",
       number: 5,
-      bankAccountId: b2.insertedId
+      bankAccountId: b2.insertedId,
     });
 
     // We are looking for A's which have exactly 2 B's
@@ -133,17 +138,17 @@ describe("Relational Filtering", () => {
           {
             $match: {
               "bankAccount.amount": {
-                $gte: 500
-              }
-            }
-          }
-        ]
+                $gte: 500,
+              },
+            },
+          },
+        ],
       },
       _id: 1,
       bs: {
-        _id: 1
+        _id: 1,
       },
-      bsCount: 1
+      bsCount: 1,
     }).fetch();
 
     assert.lengthOf(result, 1);
@@ -157,7 +162,7 @@ describe("Relational Filtering", () => {
 
     manyToOne(Comments, Posts, {
       linkName: "post",
-      inversedLinkName: "comments"
+      inversedLinkName: "comments",
     });
 
     addReducers(Posts, {
@@ -167,11 +172,11 @@ describe("Relational Filtering", () => {
           lookup(Posts, "comments"),
           {
             $addFields: {
-              commentsCount: { $size: "$comments" }
-            }
-          }
-        ]
-      }
+              commentsCount: { $size: "$comments" },
+            },
+          },
+        ],
+      },
     });
 
     const p1 = await Posts.insertOne({ name: "John Post" });
@@ -181,11 +186,11 @@ describe("Relational Filtering", () => {
       { title: "1", postId: p1.insertedId },
       { title: "1", postId: p1.insertedId },
       { title: "1", postId: p1.insertedId },
-      { title: "1", postId: p1.insertedId }
+      { title: "1", postId: p1.insertedId },
     ]);
 
     const result = await query(Posts, {
-      commentsCount: 1
+      commentsCount: 1,
     }).fetchOne();
 
     assert.isObject(result);
@@ -199,7 +204,7 @@ describe("Relational Filtering", () => {
 
     oneToOne(Users, BankAccounts, {
       linkName: "bankAccount",
-      inversedLinkName: "user"
+      inversedLinkName: "user",
     });
 
     const b1 = await BankAccounts.insertOne({ amount: 500 });
@@ -219,12 +224,12 @@ describe("Relational Filtering", () => {
           lookup(Users, "bankAccount"),
           {
             $sort: {
-              "bankAccount.amount": 1
-            }
-          }
-        ]
+              "bankAccount.amount": 1,
+            },
+          },
+        ],
       },
-      _id: 1
+      _id: 1,
     }).fetch();
 
     // Order should be: u4, u2, u1, u3
@@ -242,12 +247,12 @@ describe("Relational Filtering", () => {
 
     manyToOne(Users, Companies, {
       linkName: "company",
-      inversedLinkName: "users"
+      inversedLinkName: "users",
     });
 
     manyToMany(Companies, Departments, {
       linkName: "departments",
-      inversedLinkName: "companies"
+      inversedLinkName: "companies",
     });
 
     const d1 = await Departments.insertOne({});
@@ -256,16 +261,16 @@ describe("Relational Filtering", () => {
     const d4 = await Departments.insertOne({});
 
     const c1 = await Companies.insertOne({
-      departmentsIds: [d1.insertedId, d2.insertedId]
+      departmentsIds: [d1.insertedId, d2.insertedId],
     });
     const c2 = await Companies.insertOne({
-      departmentsIds: [d1.insertedId, d3.insertedId, d4.insertedId]
+      departmentsIds: [d1.insertedId, d3.insertedId, d4.insertedId],
     });
     const c3 = await Companies.insertOne({
-      departmentsIds: [d1.insertedId]
+      departmentsIds: [d1.insertedId],
     });
     const c4 = await Companies.insertOne({
-      departmentsIds: null
+      departmentsIds: null,
     });
 
     await Users.insertMany([
@@ -280,7 +285,7 @@ describe("Relational Filtering", () => {
       { companyId: c2.insertedId },
       { companyId: c3.insertedId },
       { companyId: c4.insertedId },
-      { companyId: c1.insertedId }
+      { companyId: c1.insertedId },
     ]);
 
     // We are looking for A's which have exactly 2 B's
@@ -292,26 +297,26 @@ describe("Relational Filtering", () => {
               lookup(Companies, "departments"),
               {
                 $addFields: {
-                  departmentsCount: { $size: "$departments" }
-                }
-              }
-            ]
+                  departmentsCount: { $size: "$departments" },
+                },
+              },
+            ],
           }),
           {
             $match: {
               "company.departmentsCount": {
-                $gte: 2
-              }
-            }
-          }
-        ]
+                $gte: 2,
+              },
+            },
+          },
+        ],
       },
       _id: 1,
-      companyId: 1
+      companyId: 1,
     }).fetch();
 
     assert.lengthOf(result, 6);
-    result.forEach(user => {
+    result.forEach((user) => {
       assert.isTrue(
         idsEqual(user.companyId, c1.insertedId) ||
           idsEqual(user.companyId, c2.insertedId)
@@ -326,11 +331,11 @@ describe("Relational Filtering", () => {
 
     manyToOne(Users, Companies, {
       linkName: "company",
-      inversedLinkName: "users"
+      inversedLinkName: "users",
     });
 
     oneToOne(Companies, Users, {
-      linkName: "director"
+      linkName: "director",
     });
 
     const c1 = await Companies.insertOne({ name: "ACME" });
@@ -340,38 +345,38 @@ describe("Relational Filtering", () => {
     const u1 = await Users.insertOne({
       index: 1,
       name: "D",
-      companyId: c1.insertedId
+      companyId: c1.insertedId,
     });
     const u2 = await Users.insertOne({
       index: 2,
       name: "U",
-      companyId: c2.insertedId
+      companyId: c2.insertedId,
     });
     const u3 = await Users.insertOne({
       index: 3,
       name: "D",
-      companyId: c2.insertedId
+      companyId: c2.insertedId,
     });
     const u4 = await Users.insertOne({
       index: 4,
       name: "U",
-      companyId: c1.insertedId
+      companyId: c1.insertedId,
     });
 
     Companies.updateOne(
       { _id: c1.insertedId },
       {
         $set: {
-          directorId: u1.insertedId
-        }
+          directorId: u1.insertedId,
+        },
       }
     );
     Companies.updateOne(
       { _id: c2.insertedId },
       {
         $set: {
-          directorId: u3.insertedId
-        }
+          directorId: u3.insertedId,
+        },
       }
     );
 
@@ -379,24 +384,24 @@ describe("Relational Filtering", () => {
       $: {
         options: {
           sort: {
-            index: 1
-          }
-        }
+            index: 1,
+          },
+        },
       },
       _id: 1,
       company: {
         $(parent) {
           return {
             filters: {
-              directorId: parent._id
-            }
+              directorId: parent._id,
+            },
           };
-        }
-      }
+        },
+      },
     }).fetch();
 
     assert.lengthOf(result, 4);
-    result.forEach(user => {
+    result.forEach((user) => {
       const isDirector =
         idsEqual(user._id, u1.insertedId) || idsEqual(user._id, u3.insertedId);
 
@@ -416,7 +421,7 @@ describe("Relational Filtering", () => {
 
     manyToOne(Comments, Posts, {
       linkName: "post",
-      inversedLinkName: "comments"
+      inversedLinkName: "comments",
     });
 
     const p1 = await Posts.insertOne({ name: "John Post" });
@@ -426,7 +431,7 @@ describe("Relational Filtering", () => {
       { title: "2", postId: p1.insertedId },
       { title: "3", postId: p1.insertedId },
       { title: "4", postId: p1.insertedId },
-      { title: "5", postId: p1.insertedId }
+      { title: "5", postId: p1.insertedId },
     ]);
 
     const post = await query(Posts, {
@@ -434,27 +439,27 @@ describe("Relational Filtering", () => {
         $alias: "comments",
         $: {
           options: {
-            limit: 3
-          }
+            limit: 3,
+          },
         },
-        title: 1
+        title: 1,
       },
       otherComments: {
         $alias: "comments",
         $: {
-          options: { limit: 2 }
+          options: { limit: 2 },
         },
-        title: 1
-      }
+        title: 1,
+      },
     }).fetchOne();
 
     assert.isObject(post);
     assert.lengthOf(post.newestComments, 3);
     assert.lengthOf(post.otherComments, 2);
-    post.newestComments.forEach(comment => {
+    post.newestComments.forEach((comment) => {
       assert.isString(comment.title);
     });
-    post.otherComments.forEach(comment => {
+    post.otherComments.forEach((comment) => {
       assert.isString(comment.title);
     });
   });
@@ -468,12 +473,12 @@ describe("Relational Filtering", () => {
 
     manyToOne(Comments, Posts, {
       linkName: "post",
-      inversedLinkName: "comments"
+      inversedLinkName: "comments",
     });
 
     manyToOne(Comments, Authors, {
       linkName: "author",
-      inversedLinkName: "comments"
+      inversedLinkName: "comments",
     });
 
     const a1 = await Authors.insertOne({ eligible: true });
@@ -487,7 +492,7 @@ describe("Relational Filtering", () => {
       { title: "2", postId: p1.insertedId, authorId: a2.insertedId },
       { title: "3", postId: p1.insertedId, authorId: a3.insertedId },
       { title: "4", postId: p1.insertedId, authorId: a1.insertedId },
-      { title: "5", postId: p1.insertedId, authorId: a3.insertedId }
+      { title: "5", postId: p1.insertedId, authorId: a3.insertedId },
     ]);
 
     const post = await query(Posts, {
@@ -497,18 +502,18 @@ describe("Relational Filtering", () => {
             lookup(Comments, "author"),
             {
               $match: {
-                "author.eligible": true
-              }
-            }
-          ]
+                "author.eligible": true,
+              },
+            },
+          ],
         },
-        authorId: 1
-      }
+        authorId: 1,
+      },
     }).fetchOne();
 
     assert.isObject(post);
     assert.lengthOf(post.comments, 2);
-    post.comments.forEach(comment => {
+    post.comments.forEach((comment) => {
       assert.isTrue(idsEqual(comment.authorId, a1.insertedId));
     });
   });

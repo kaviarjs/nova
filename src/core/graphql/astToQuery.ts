@@ -1,23 +1,15 @@
 // import intersectDeep from "../../core/query/lib/intersectDeep";
 import * as _ from "lodash";
 import * as graphqlFields from "graphql-fields";
-import { SPECIAL_PARAM_FIELD, CollectionQueryBody } from "../constants";
+import { SPECIAL_PARAM_FIELD } from "../constants";
 import Query from "../query/Query";
 import intersectDeep from "./intersectDeep";
-import { Collection } from "mongodb";
+import { IAggregable, CollectionQueryBody, AstToQueryOptions } from "../defs";
 
 export const ArgumentStore = Symbol("GraphQLArgumentStore");
 
 const Errors = {
-  MAX_DEPTH: "The maximum depth of this request exceeds the depth allowed."
-};
-
-export type AstToQueryOptions = {
-  intersect?: CollectionQueryBody;
-  maxLimit?: number;
-  maxDepth?: number;
-  deny?: string[];
-  embody?(body: CollectionQueryBody, getArguments: (path: string) => any);
+  MAX_DEPTH: "The maximum depth of this request exceeds the depth allowed.",
 };
 
 export function astToBody(ast): CollectionQueryBody {
@@ -32,7 +24,7 @@ function replaceArgumentsWithOurs(body: any) {
   _.forEach(body, (value, key) => {
     if (key === "__arguments") {
       let args = {};
-      (value as any[]).forEach(argument => {
+      (value as any[]).forEach((argument) => {
         _.forEach(argument, (value, key) => {
           args[key] = value.value;
         });
@@ -51,7 +43,7 @@ function replaceArgumentsWithOurs(body: any) {
 }
 
 export default function astToQuery(
-  collection: Collection,
+  collection: IAggregable,
   ast,
   config: AstToQueryOptions = {}
 ) {
@@ -111,7 +103,7 @@ export function getMaxDepth(body) {
  * @param fields
  */
 export function deny(body, fields) {
-  fields.forEach(field => {
+  fields.forEach((field) => {
     let parts = field.split(".");
     let accessor = body;
     while (parts.length !== 0) {
@@ -179,19 +171,19 @@ export function astQueryToInfo(astToInfo) {
     .reduce(
       (result, current) => ({
         ...result,
-        [current.name.value]: current
+        [current.name.value]: current,
       }),
       {}
     );
 
   return {
     fieldNodes: operation.selectionSet.selections,
-    fragments
+    fragments,
   };
 }
 
 export function createGetArguments(body) {
-  return function(path) {
+  return function (path) {
     const parts = path.split(".");
     let stopped = false;
     let accessor = body;

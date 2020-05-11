@@ -1,8 +1,8 @@
 import _ from "lodash";
-import { Collection } from "mongodb";
 import { addLinks } from "./api";
+import { IAggregable } from "./defs";
 
-export type LinkingArguments = {
+export type QuickLinkingArguments = {
   linkName: string;
   inversedLinkName?: string;
   /**
@@ -12,9 +12,9 @@ export type LinkingArguments = {
 };
 
 export function oneToOne(
-  C1: Collection,
-  C2: Collection,
-  options: LinkingArguments
+  C1: IAggregable,
+  C2: IAggregable,
+  options: QuickLinkingArguments
 ) {
   addLinks(C1, {
     [options.linkName]: {
@@ -33,9 +33,9 @@ export function oneToOne(
 }
 
 export function manyToOne(
-  C1: Collection,
-  C2: Collection,
-  options: LinkingArguments
+  C1: IAggregable,
+  C2: IAggregable,
+  options: QuickLinkingArguments
 ) {
   addLinks(C1, {
     [options.linkName]: {
@@ -53,9 +53,9 @@ export function manyToOne(
 }
 
 export function oneToMany(
-  C1: Collection,
-  C2: Collection,
-  options: LinkingArguments
+  C1: IAggregable,
+  C2: IAggregable,
+  options: QuickLinkingArguments
 ) {
   addLinks(C1, {
     [options.linkName]: {
@@ -75,9 +75,9 @@ export function oneToMany(
 }
 
 export function manyToMany(
-  C1: Collection,
-  C2: Collection,
-  options: LinkingArguments
+  C1: IAggregable,
+  C2: IAggregable,
+  options: QuickLinkingArguments
 ) {
   addLinks(C1, {
     [options.linkName]: {

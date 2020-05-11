@@ -1,15 +1,14 @@
-import { Collection } from "mongodb";
 import * as _ from "lodash";
 import * as dot from "dot-object";
 
 import { SPECIAL_PARAM_FIELD, ALIAS_FIELD } from "../../constants";
-import { CollectionQueryBody, ReducerOption } from "../../constants";
+import { CollectionQueryBody, ReducerOption, IAggregable } from "../../defs";
 
 import {
   getLinker,
   getReducerConfig,
   getExpanderConfig,
-  hasLinker
+  hasLinker,
 } from "../../api";
 import Linker from "../Linker";
 import { INode } from "./INode";
@@ -17,7 +16,7 @@ import FieldNode from "./FieldNode";
 import ReducerNode from "./ReducerNode";
 
 export type CollectionNodeOptions = {
-  collection: Collection;
+  collection: IAggregable;
   body: CollectionQueryBody;
   explain?: boolean;
   name?: string;
@@ -29,13 +28,13 @@ export enum NodeLinkType {
   COLLECTION,
   FIELD,
   REDUCER,
-  EXPANDER
+  EXPANDER,
 }
 
 export default class CollectionNode implements INode {
   public body: CollectionQueryBody;
   public name: string;
-  public collection: Collection;
+  public collection: IAggregable;
   public parent: CollectionNode;
   public alias: string;
 
@@ -107,16 +106,16 @@ export default class CollectionNode implements INode {
 
   get collectionNodes(): CollectionNode[] {
     return this.nodes.filter(
-      n => n instanceof CollectionNode
+      (n) => n instanceof CollectionNode
     ) as CollectionNode[];
   }
 
   get fieldNodes(): FieldNode[] {
-    return this.nodes.filter(n => n instanceof FieldNode) as FieldNode[];
+    return this.nodes.filter((n) => n instanceof FieldNode) as FieldNode[];
   }
 
   get reducerNodes(): ReducerNode[] {
-    return this.nodes.filter(n => n instanceof ReducerNode) as ReducerNode[];
+    return this.nodes.filter((n) => n instanceof ReducerNode) as ReducerNode[];
   }
 
   /**
@@ -132,7 +131,7 @@ export default class CollectionNode implements INode {
   }
 
   public getReducer(name: string): ReducerNode {
-    return this.reducerNodes.find(node => node.name === name);
+    return this.reducerNodes.find((node) => node.name === name);
   }
 
   public getReducerConfig(name: string): ReducerOption {
@@ -165,7 +164,7 @@ export default class CollectionNode implements INode {
     return {
       filters,
       options,
-      pipeline
+      pipeline,
     };
   }
 
@@ -178,11 +177,11 @@ export default class CollectionNode implements INode {
       projection = {};
     }
 
-    this.fieldNodes.forEach(fieldNode => {
+    this.fieldNodes.forEach((fieldNode) => {
       fieldNode.blendInProjection(projection);
     });
 
-    this.reducerNodes.forEach(reducerNode => {
+    this.reducerNodes.forEach((reducerNode) => {
       reducerNode.blendInProjection(projection);
     });
 
@@ -198,7 +197,7 @@ export default class CollectionNode implements INode {
    * @returns {boolean}
    */
   public hasField(fieldName) {
-    return this.fieldNodes.find(fieldNode => fieldNode.name === fieldName);
+    return this.fieldNodes.find((fieldNode) => fieldNode.name === fieldName);
   }
 
   /**
@@ -206,7 +205,7 @@ export default class CollectionNode implements INode {
    * @returns {FieldNode}
    */
   public getFirstLevelField(fieldName) {
-    return this.fieldNodes.find(fieldNode => {
+    return this.fieldNodes.find((fieldNode) => {
       return fieldNode.name === fieldName;
     });
   }
@@ -216,7 +215,7 @@ export default class CollectionNode implements INode {
    * @returns {boolean}
    */
   public hasCollectionNode(name) {
-    return !!this.collectionNodes.find(node => {
+    return !!this.collectionNodes.find((node) => {
       return node.name === name;
     });
   }
@@ -226,7 +225,7 @@ export default class CollectionNode implements INode {
    * @returns {boolean}
    */
   public hasReducerNode(name) {
-    return !!this.reducerNodes.find(node => node.name === name);
+    return !!this.reducerNodes.find((node) => node.name === name);
   }
 
   /**
@@ -234,7 +233,7 @@ export default class CollectionNode implements INode {
    * @returns {ReducerNode}
    */
   public getReducerNode(name) {
-    return this.reducerNodes.find(node => node.name === name);
+    return this.reducerNodes.find((node) => node.name === name);
   }
 
   /**
@@ -242,7 +241,7 @@ export default class CollectionNode implements INode {
    * @returns {CollectionNode}
    */
   public getCollectionNode(name) {
-    return this.collectionNodes.find(node => node.name === name);
+    return this.collectionNodes.find((node) => node.name === name);
   }
 
   /**
@@ -263,7 +262,7 @@ export default class CollectionNode implements INode {
 
     const results = await this.collection
       .aggregate(pipeline, {
-        allowDiskUse: true
+        allowDiskUse: true,
       })
       .toArray();
 
@@ -310,7 +309,7 @@ export default class CollectionNode implements INode {
     const {
       filters,
       options,
-      pipeline: pipelineFromProps
+      pipeline: pipelineFromProps,
     } = this.getPropsForQuerying(parentObject);
 
     const pipeline = [];
@@ -326,7 +325,7 @@ export default class CollectionNode implements INode {
       pipeline.push({ $sort: options.sort });
     }
 
-    this.reducerNodes.forEach(reducerNode => {
+    this.reducerNodes.forEach((reducerNode) => {
       pipeline.push(...reducerNode.pipeline);
     });
 
@@ -335,19 +334,19 @@ export default class CollectionNode implements INode {
         options.skip = 0;
       }
       pipeline.push({
-        $limit: options.limit + options.skip
+        $limit: options.limit + options.skip,
       });
     }
 
     if (options.skip) {
       pipeline.push({
-        $skip: options.skip
+        $skip: options.skip,
       });
     }
 
     if (options.projection) {
       pipeline.push({
-        $project: options.projection
+        $project: options.projection,
       });
     }
 
@@ -392,7 +391,7 @@ export default class CollectionNode implements INode {
             collection: linker.getLinkedCollection(),
             linker,
             name: fieldName,
-            parent: this
+            parent: this,
           });
           break;
         case NodeLinkType.REDUCER:
@@ -400,7 +399,7 @@ export default class CollectionNode implements INode {
 
           childNode = new ReducerNode(fieldName, {
             body: fieldBody as CollectionQueryBody,
-            ...reducerConfig
+            ...reducerConfig,
           });
 
           /**
@@ -469,8 +468,8 @@ export default class CollectionNode implements INode {
 
   private blendReducers() {
     this.reducerNodes
-      .filter(node => !node.isSpread)
-      .forEach(reducerNode => {
+      .filter((node) => !node.isSpread)
+      .forEach((reducerNode) => {
         reducerNode.isSpread = true;
         this.spread(reducerNode.dependency, reducerNode);
       });

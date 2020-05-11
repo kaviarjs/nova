@@ -1,7 +1,8 @@
-import { CollectionQueryBody, SPECIAL_PARAM_FIELD } from "../../constants";
+import { CollectionQueryBody } from "../../defs";
 import * as _ from "lodash";
 import { INode } from "./INode";
 import * as dot from "dot-object";
+import { SPECIAL_PARAM_FIELD } from "../../constants";
 
 const PROJECTION_FIELDS = ["$filter"];
 
@@ -91,7 +92,7 @@ export default class FieldNode implements INode {
 
     const obj = {};
 
-    this.subfields.forEach(fieldNode => {
+    this.subfields.forEach((fieldNode) => {
       obj[fieldNode.name] = fieldNode.getFieldTreeAsObject();
     });
 
@@ -106,7 +107,7 @@ export default class FieldNode implements INode {
     const object = {};
 
     let path = object;
-    parts.forEach(part => {
+    parts.forEach((part) => {
       path[part] = {};
       path = object[part];
     });

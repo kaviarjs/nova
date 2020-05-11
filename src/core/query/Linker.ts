@@ -1,14 +1,14 @@
-import * as mongodb from "mongodb";
 import * as _ from "lodash";
-import { LINK_STORAGE, LinkCollectionOptions } from "../constants";
+import { LINK_STORAGE } from "../constants";
+import { LinkCollectionOptions, IAggregable } from "../defs";
 
 export enum LinkStrategy {
   ONE,
-  MANY
+  MANY,
 }
 
 export default class Linker {
-  public mainCollection: mongodb.Collection;
+  public mainCollection: IAggregable;
   public linkConfig: LinkCollectionOptions & {
     strategy: LinkStrategy;
   };
@@ -22,7 +22,7 @@ export default class Linker {
    * @param linkConfig
    */
   constructor(
-    mainCollection: mongodb.Collection,
+    mainCollection: IAggregable,
     linkName: string,
     linkConfig: LinkCollectionOptions
   ) {
@@ -30,17 +30,13 @@ export default class Linker {
 
     this.linkConfig = {
       ...linkConfig,
-      strategy: linkConfig.many ? LinkStrategy.MANY : LinkStrategy.ONE
+      strategy: linkConfig.many ? LinkStrategy.MANY : LinkStrategy.ONE,
     };
 
     this.linkName = linkName;
 
     // check linkName must not exist in schema
     this._validateAndClean();
-
-    if (!this.isVirtual()) {
-      this.initIndex();
-    }
   }
 
   get relatedLinker(): Linker {
@@ -143,21 +139,21 @@ export default class Linker {
     const result: any = {
       from: this.getLinkedCollection().collectionName,
       let: {
-        localField: `$${localField}`
+        localField: `$${localField}`,
       },
       as: options.as || this.linkName,
       pipeline: [
         {
-          $match: { $expr: { $and: matches } }
+          $match: { $expr: { $and: matches } },
         },
-        ...(options.pipeline ? options.pipeline : [])
-      ]
+        ...(options.pipeline ? options.pipeline : []),
+      ],
     };
 
     // console.log(JSON.stringify(result, null, 4));
 
     return {
-      $lookup: result
+      $lookup: result,
     };
   }
 
@@ -171,15 +167,15 @@ export default class Linker {
       if (this.isMany()) {
         matches.push(
           {
-            $isArray: `$${foreignField}`
+            $isArray: `$${foreignField}`,
           },
           {
-            $in: [`$$localField`, `$${foreignField}`]
+            $in: [`$$localField`, `$${foreignField}`],
           }
         );
       } else {
         matches.push({
-          $eq: [`$${foreignField}`, `$$localField`]
+          $eq: [`$${foreignField}`, `$$localField`],
         });
       }
     } else {
@@ -187,12 +183,12 @@ export default class Linker {
         matches.push(
           { $isArray: `$$localField` },
           {
-            $in: [`$${foreignField}`, `$$localField`]
+            $in: [`$${foreignField}`, `$$localField`],
           }
         );
       } else {
         matches.push({
-          $eq: [`$$localField`, `$${foreignField}`]
+          $eq: [`$$localField`, `$${foreignField}`],
         });
       }
     }
@@ -214,25 +210,6 @@ export default class Linker {
       throw new Error(
         `For the link ${this.linkName} you must not use the same name for the field, otherwise it will cause conflicts when fetching data`
       );
-    }
-  }
-
-  private async initIndex() {
-    const field: string = this.linkConfig.field;
-
-    if (this.linkConfig.index) {
-      if (this.isVirtual()) {
-        throw new Error("You cannot set index on an inversed link.");
-      }
-
-      let options;
-      if (this.linkConfig.unique && this.isSingle()) {
-        options = { unique: true };
-      }
-
-      if (!this.mainCollection.indexExists(field)) {
-        this.mainCollection.createIndex({ [field]: 1 }, options);
-      }
     }
   }
 }

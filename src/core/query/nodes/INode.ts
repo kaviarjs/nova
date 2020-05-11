@@ -1,4 +1,4 @@
-import { CollectionQueryBody } from "../../constants";
+import { CollectionQueryBody } from "../../defs";
 
 export interface INode {
   name: string;

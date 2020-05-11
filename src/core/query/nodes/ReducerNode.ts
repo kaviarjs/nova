@@ -1,4 +1,4 @@
-import { CollectionQueryBody, ReducerOption } from "../../constants";
+import { CollectionQueryBody, ReducerOption } from "../../defs";
 import { SPECIAL_PARAM_FIELD } from "../../constants";
 import { INode } from "./INode";
 

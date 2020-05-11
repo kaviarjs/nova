@@ -1,44 +1,44 @@
 import {
   ExpanderOptions,
-  EXPANDER_STORAGE,
-  FieldMapOptions,
-  LINK_STORAGE,
-  LinkCollectionOptionsDefaults,
   LinkOptions,
   CollectionQueryBody,
-  REDUCER_STORAGE,
   ReducerOption,
-  ReducerOptions
+  ReducerOptions,
+  IAggregable,
+  AstToQueryOptions,
+} from "./defs";
+
+import {
+  EXPANDER_STORAGE,
+  LINK_STORAGE,
+  REDUCER_STORAGE,
+  LINK_COLLECTION_OPTIONS_DEFAULTS,
 } from "./constants";
 import * as _ from "lodash";
-import * as mongodb from "mongodb";
 import Linker from "./query/Linker";
 import Query from "./query/Query";
-import astToQuery, { AstToQueryOptions } from "./graphql/astToQuery";
+import astToQuery from "./graphql/astToQuery";
 import { GetLookupOperatorOptions } from "./query/Linker";
 
-export function query(
-  collection: mongodb.Collection,
-  body: CollectionQueryBody
-) {
+export function query(collection: IAggregable, body: CollectionQueryBody) {
   return new Query(collection, body);
 }
 
 query.graphql = (
-  collection: mongodb.Collection,
+  collection: IAggregable,
   ast: any,
   options: AstToQueryOptions
 ) => {
   return astToQuery(collection, ast, options);
 };
 
-export function clear(collection: mongodb.Collection) {
+export function clear(collection: IAggregable) {
   collection[LINK_STORAGE] = {};
   collection[REDUCER_STORAGE] = {};
   collection[EXPANDER_STORAGE] = {};
 }
 
-export function addLinks(collection: mongodb.Collection, data: LinkOptions) {
+export function addLinks(collection: IAggregable, data: LinkOptions) {
   if (!collection[LINK_STORAGE]) {
     collection[LINK_STORAGE] = {};
   }
@@ -51,20 +51,17 @@ export function addLinks(collection: mongodb.Collection, data: LinkOptions) {
     }
 
     const linker = new Linker(collection, linkName, {
-      ...LinkCollectionOptionsDefaults,
-      ...linkConfig
+      ...LINK_COLLECTION_OPTIONS_DEFAULTS,
+      ...linkConfig,
     });
 
     Object.assign(collection[LINK_STORAGE], {
-      [linkName]: linker
+      [linkName]: linker,
     });
   });
 }
 
-export function addExpanders(
-  collection: mongodb.Collection,
-  data: ExpanderOptions
-) {
+export function addExpanders(collection: IAggregable, data: ExpanderOptions) {
   if (!collection[EXPANDER_STORAGE]) {
     collection[EXPANDER_STORAGE] = {};
   }
@@ -75,15 +72,12 @@ export function addExpanders(
     }
 
     Object.assign(collection[EXPANDER_STORAGE], {
-      [expanderName]: expanderConfig
+      [expanderName]: expanderConfig,
     });
   });
 }
 
-export function getLinker(
-  collection: mongodb.Collection,
-  name: string
-): Linker {
+export function getLinker(collection: IAggregable, name: string): Linker {
   if (collection[LINK_STORAGE] && collection[LINK_STORAGE][name]) {
     return collection[LINK_STORAGE][name];
   } else {
@@ -93,10 +87,7 @@ export function getLinker(
   }
 }
 
-export function hasLinker(
-  collection: mongodb.Collection,
-  name: string
-): boolean {
+export function hasLinker(collection: IAggregable, name: string): boolean {
   if (collection[LINK_STORAGE]) {
     return Boolean(collection[LINK_STORAGE][name]);
   } else {
@@ -109,7 +100,7 @@ export function hasLinker(
  * This is useful for complex searching and filtering
  */
 export function lookup(
-  collection: mongodb.Collection,
+  collection: IAggregable,
   linkName: string,
   options?: GetLookupOperatorOptions
 ) {
@@ -117,7 +108,7 @@ export function lookup(
 }
 
 export function getReducerConfig(
-  collection: mongodb.Collection,
+  collection: IAggregable,
   name: string
 ): ReducerOption {
   if (collection[REDUCER_STORAGE]) {
@@ -126,7 +117,7 @@ export function getReducerConfig(
 }
 
 export function getExpanderConfig(
-  collection: mongodb.Collection,
+  collection: IAggregable,
   name: string
 ): CollectionQueryBody {
   if (collection[EXPANDER_STORAGE]) {
@@ -134,15 +125,12 @@ export function getExpanderConfig(
   }
 }
 
-export function addReducers(
-  collection: mongodb.Collection,
-  data: ReducerOptions
-) {
+export function addReducers(collection: IAggregable, data: ReducerOptions) {
   if (!collection[REDUCER_STORAGE]) {
     collection[REDUCER_STORAGE] = {};
   }
 
-  Object.keys(data).forEach(reducerName => {
+  Object.keys(data).forEach((reducerName) => {
     const reducerConfig = data[reducerName];
 
     if (hasLinker(collection, reducerName)) {
@@ -158,7 +146,7 @@ export function addReducers(
     }
 
     Object.assign(collection[REDUCER_STORAGE], {
-      [reducerName]: reducerConfig
+      [reducerName]: reducerConfig,
     });
   });
 }

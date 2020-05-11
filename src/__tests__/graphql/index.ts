@@ -3,7 +3,7 @@ import astToQuery, {
   deny,
   getMaxDepth,
   astToBody,
-  astQueryToInfo
+  astQueryToInfo,
 } from "../../core/graphql/astToQuery";
 import gql from "graphql-tag";
 import { log, getRandomCollection } from "../integration/helpers";
@@ -14,14 +14,14 @@ import { SPECIAL_PARAM_FIELD } from "../../core/constants";
 import { enforceMaxLimit } from "../../core/graphql/astToQuery";
 import Query from "../../core/query/Query";
 
-describe("GraphQL", function() {
+describe("GraphQL", function () {
   let A: Collection;
   let B: Collection;
   let C: Collection;
   let D: Collection;
   let E: Collection;
 
-  before(async () => {
+  beforeAll(async () => {
     A = await getRandomCollection("A");
     B = await getRandomCollection("B");
     C = await getRandomCollection("C");
@@ -37,7 +37,7 @@ describe("GraphQL", function() {
     await D.deleteMany({});
     await E.deleteMany({});
 
-    [A, B, C, D, E].forEach(coll => clear(coll));
+    [A, B, C, D, E].forEach((coll) => clear(coll));
   });
 
   it("#astToBody()", () => {
@@ -86,13 +86,13 @@ describe("GraphQL", function() {
       intersect: {
         a: 1,
         profile: {
-          a: 1
-        }
+          a: 1,
+        },
       },
       embody(body, getArguments) {
         const profileArguments = getArguments("profile");
         assert.equal(profileArguments.withPrefix, true);
-      }
+      },
     });
 
     assert.instanceOf(query, Query);
@@ -101,31 +101,31 @@ describe("GraphQL", function() {
     assert.isUndefined(query.body.profile.b);
   });
 
-  it("#deny()", function() {
+  it("#deny()", function () {
     const body = {
       test: 1,
       testDeny: 1,
       nested: {
         testDeny: 1,
-        testAllow: 1
+        testAllow: 1,
       },
       nestedEmpty: {
-        disallow: 1
+        disallow: 1,
       },
       nestedDeny: {
         a: 1,
         b: 1,
-        c: 1
+        c: 1,
       },
       heavy: {
         nest: {
           ting: {
             wup: {
-              denyThis: 1
-            }
-          }
-        }
-      }
+              denyThis: 1,
+            },
+          },
+        },
+      },
     };
 
     deny(body, [
@@ -133,7 +133,7 @@ describe("GraphQL", function() {
       "nested.testDeny",
       "nestedEmpty.disallow",
       "nestedDeny",
-      "heavy.nest.ting.wup.denyThis"
+      "heavy.nest.ting.wup.denyThis",
     ]);
 
     assert.isDefined(body.test);
@@ -144,19 +144,19 @@ describe("GraphQL", function() {
     assert.isUndefined(body.heavy);
   });
 
-  it("#getMaxDepth()", function() {
+  it("#getMaxDepth()", function () {
     let body: any = {
       a: 1,
-      b: 2
+      b: 2,
     };
 
     assert.equal(getMaxDepth(body), 1);
 
     body = {
       a: {
-        b: 1
+        b: 1,
       },
-      b: 1
+      b: 1,
     };
 
     assert.equal(getMaxDepth(body), 2);
@@ -166,14 +166,14 @@ describe("GraphQL", function() {
         b: 1,
         c: {
           d: {
-            a: 1
-          }
-        }
+            a: 1,
+          },
+        },
       },
       b: 1,
       c: {
-        a: 1
-      }
+        a: 1,
+      },
     };
 
     assert.equal(getMaxDepth(body), 4);
@@ -184,31 +184,31 @@ describe("GraphQL", function() {
           c: {
             d: {
               e: {
-                a: 1
-              }
-            }
-          }
-        }
+                a: 1,
+              },
+            },
+          },
+        },
       },
       b: {
         c: {
           d: {
             e: {
-              a: 1
-            }
-          }
-        }
-      }
+              a: 1,
+            },
+          },
+        },
+      },
     };
 
     assert.equal(getMaxDepth(body), 6);
   });
 
-  it("#enforceMaxLimit()", function() {
+  it("#enforceMaxLimit()", function () {
     let props: any = {
       options: {
-        limit: 5
-      }
+        limit: 5,
+      },
     };
 
     enforceMaxLimit(props, 10);
@@ -217,8 +217,8 @@ describe("GraphQL", function() {
 
     props = {
       options: {
-        limit: 11
-      }
+        limit: 11,
+      },
     };
 
     enforceMaxLimit(props, 9);
@@ -230,7 +230,7 @@ describe("GraphQL", function() {
     assert.equal(9, props.options.limit);
 
     props = {
-      options: {}
+      options: {},
     };
     enforceMaxLimit(props, 9);
     assert.equal(9, props.options.limit);

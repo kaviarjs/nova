@@ -1,11 +1,10 @@
-import { Collection } from "mongodb";
 import * as _ from "lodash";
-import { CollectionQueryBody } from "../constants";
+import { CollectionQueryBody, IAggregable } from "../defs";
 import CollectionNode from "./nodes/CollectionNode";
 import hypernova from "./hypernova/hypernova";
 
 export default class Query {
-  public collection: Collection;
+  public collection: IAggregable;
   private graph: CollectionNode;
   public readonly body: any;
   public queryName: string;
@@ -16,14 +15,14 @@ export default class Query {
    * @param collection
    * @param body
    */
-  constructor(collection: Collection, body: CollectionQueryBody) {
+  constructor(collection: IAggregable, body: CollectionQueryBody) {
     this.collection = collection;
     this.queryName = collection.collectionName;
     this.body = _.cloneDeep(body);
     this.graph = new CollectionNode({
       collection,
       body,
-      name: "root"
+      name: "root",
     });
   }
 
