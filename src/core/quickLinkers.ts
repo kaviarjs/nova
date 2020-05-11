@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { addLinks } from "./api";
-import { IAggregable } from "./defs";
+import { ICollection } from "./defs";
 
 export type QuickLinkingArguments = {
   linkName: string;
@@ -12,8 +12,8 @@ export type QuickLinkingArguments = {
 };
 
 export function oneToOne(
-  C1: IAggregable,
-  C2: IAggregable,
+  C1: ICollection,
+  C2: ICollection,
   options: QuickLinkingArguments
 ) {
   addLinks(C1, {
@@ -33,8 +33,8 @@ export function oneToOne(
 }
 
 export function manyToOne(
-  C1: IAggregable,
-  C2: IAggregable,
+  C1: ICollection,
+  C2: ICollection,
   options: QuickLinkingArguments
 ) {
   addLinks(C1, {
@@ -53,8 +53,8 @@ export function manyToOne(
 }
 
 export function oneToMany(
-  C1: IAggregable,
-  C2: IAggregable,
+  C1: ICollection,
+  C2: ICollection,
   options: QuickLinkingArguments
 ) {
   addLinks(C1, {
@@ -75,8 +75,8 @@ export function oneToMany(
 }
 
 export function manyToMany(
-  C1: IAggregable,
-  C2: IAggregable,
+  C1: ICollection,
+  C2: ICollection,
   options: QuickLinkingArguments
 ) {
   addLinks(C1, {

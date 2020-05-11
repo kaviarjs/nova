@@ -28,7 +28,7 @@ afterAll(async () => {
   await client.close();
 });
 
-describe("Main tests", async function () {
+describe("Main tests", function () {
   let A: Collection;
   let B: Collection;
   let C: Collection;

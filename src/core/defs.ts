@@ -2,7 +2,7 @@ export interface IToArrayable {
   toArray(): Promise<any[]>;
 }
 
-export interface IAggregable {
+export interface ICollection {
   aggregate(
     pipeline: any[],
     options?: {
@@ -14,11 +14,11 @@ export interface IAggregable {
 }
 
 export type AstToQueryOptions = {
-  intersect?: CollectionQueryBody;
+  intersect?: QueryBody;
   maxLimit?: number;
   maxDepth?: number;
   deny?: string[];
-  embody?(body: CollectionQueryBody, getArguments: (path: string) => any);
+  embody?(body: QueryBody, getArguments: (path: string) => any);
 };
 
 export type StorageDataType = {
@@ -32,7 +32,7 @@ export type FindOptions = {
 };
 
 export type LinkCollectionOptions = {
-  collection: () => IAggregable;
+  collection: () => ICollection;
   field?: string;
   unique?: boolean;
   many?: boolean;
@@ -43,7 +43,7 @@ export type LinkCollectionOptions = {
 };
 
 export type ReducerOption = {
-  dependency: CollectionQueryBody;
+  dependency: QueryBody;
   pipeline?: any[];
   projection?: any;
   reduce?: (object: any, params?: any) => any;
@@ -58,7 +58,7 @@ export type ReducerOptions = {
 };
 
 export type ExpanderOptions = {
-  [key: string]: CollectionQueryBody;
+  [key: string]: QueryBody;
 };
 
 export type FieldMapOptions = {
@@ -80,8 +80,8 @@ export type ParamaterableObject = {
   [key: string]: any;
 };
 
-export type CollectionQueryBody = {
+export type QueryBody = {
   $?: Functionable<ParamaterableObject>;
   $alias?: string;
-  [field: string]: string | number | CollectionQueryBody | ParamaterableObject;
+  [field: string]: string | number | QueryBody | ParamaterableObject;
 };

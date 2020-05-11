@@ -2,7 +2,7 @@ import * as _ from "lodash";
 import * as dot from "dot-object";
 
 import { SPECIAL_PARAM_FIELD, ALIAS_FIELD } from "../../constants";
-import { CollectionQueryBody, ReducerOption, IAggregable } from "../../defs";
+import { QueryBody, ReducerOption, ICollection } from "../../defs";
 
 import {
   getLinker,
@@ -16,8 +16,8 @@ import FieldNode from "./FieldNode";
 import ReducerNode from "./ReducerNode";
 
 export type CollectionNodeOptions = {
-  collection: IAggregable;
-  body: CollectionQueryBody;
+  collection: ICollection;
+  body: QueryBody;
   explain?: boolean;
   name?: string;
   parent?: CollectionNode;
@@ -32,9 +32,9 @@ export enum NodeLinkType {
 }
 
 export default class CollectionNode implements INode {
-  public body: CollectionQueryBody;
+  public body: QueryBody;
   public name: string;
-  public collection: IAggregable;
+  public collection: ICollection;
   public parent: CollectionNode;
   public alias: string;
 
@@ -138,7 +138,7 @@ export default class CollectionNode implements INode {
     return getReducerConfig(this.collection, name);
   }
 
-  public getExpanderConfig(name: string): CollectionQueryBody {
+  public getExpanderConfig(name: string): QueryBody {
     return getExpanderConfig(this.collection, name);
   }
 
@@ -356,7 +356,7 @@ export default class CollectionNode implements INode {
   /**
    * This function creates the children properly for my root.
    */
-  private spread(body: CollectionQueryBody, fromReducerNode?: ReducerNode) {
+  private spread(body: QueryBody, fromReducerNode?: ReducerNode) {
     _.forEach(body, (fieldBody, fieldName) => {
       if (!fieldBody) {
         return;
@@ -378,16 +378,14 @@ export default class CollectionNode implements INode {
       switch (linkType) {
         case NodeLinkType.COLLECTION:
           if (this.hasCollectionNode(alias)) {
-            this.getCollectionNode(alias).spread(
-              fieldBody as CollectionQueryBody
-            );
+            this.getCollectionNode(alias).spread(fieldBody as QueryBody);
             return;
           }
 
           const linker = this.getLinker(alias);
 
           childNode = new CollectionNode({
-            body: fieldBody as CollectionQueryBody,
+            body: fieldBody as QueryBody,
             collection: linker.getLinkedCollection(),
             linker,
             name: fieldName,
@@ -398,7 +396,7 @@ export default class CollectionNode implements INode {
           const reducerConfig = this.getReducerConfig(fieldName);
 
           childNode = new ReducerNode(fieldName, {
-            body: fieldBody as CollectionQueryBody,
+            body: fieldBody as QueryBody,
             ...reducerConfig,
           });
 

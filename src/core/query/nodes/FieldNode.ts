@@ -1,4 +1,4 @@
-import { CollectionQueryBody } from "../../defs";
+import { QueryBody } from "../../defs";
 import * as _ from "lodash";
 import { INode } from "./INode";
 import * as dot from "dot-object";
@@ -43,11 +43,11 @@ export default class FieldNode implements INode {
 
   public name: any;
   public projectionOperator: any;
-  public body: number | CollectionQueryBody;
+  public body: number | QueryBody;
   public isProjectionField: boolean;
   public subfields: FieldNode[] = [];
 
-  constructor(name: string, body?: number | CollectionQueryBody) {
+  constructor(name: string, body?: number | QueryBody) {
     this.name = name;
     if (name.indexOf(".") > -1) {
       throw new Error(`Please specify the nested field as an object`);
@@ -103,7 +103,7 @@ export default class FieldNode implements INode {
    * Transforms ['a', 'b', 'c'] to { a: { b : { c: 1 }}}
    * @param parts
    */
-  public toQueryBody(parts: any[]): CollectionQueryBody {
+  public toQueryBody(parts: any[]): QueryBody {
     const object = {};
 
     let path = object;

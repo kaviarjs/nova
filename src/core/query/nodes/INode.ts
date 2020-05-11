@@ -1,4 +1,4 @@
-import { CollectionQueryBody } from "../../defs";
+import { QueryBody } from "../../defs";
 
 export interface INode {
   name: string;

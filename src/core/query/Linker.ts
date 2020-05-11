@@ -1,6 +1,6 @@
 import * as _ from "lodash";
 import { LINK_STORAGE } from "../constants";
-import { LinkCollectionOptions, IAggregable } from "../defs";
+import { LinkCollectionOptions, ICollection } from "../defs";
 
 export enum LinkStrategy {
   ONE,
@@ -8,7 +8,7 @@ export enum LinkStrategy {
 }
 
 export default class Linker {
-  public mainCollection: IAggregable;
+  public mainCollection: ICollection;
   public linkConfig: LinkCollectionOptions & {
     strategy: LinkStrategy;
   };
@@ -22,7 +22,7 @@ export default class Linker {
    * @param linkConfig
    */
   constructor(
-    mainCollection: IAggregable,
+    mainCollection: ICollection,
     linkName: string,
     linkConfig: LinkCollectionOptions
   ) {

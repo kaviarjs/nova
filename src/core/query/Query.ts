@@ -1,10 +1,10 @@
 import * as _ from "lodash";
-import { CollectionQueryBody, IAggregable } from "../defs";
+import { QueryBody, ICollection } from "../defs";
 import CollectionNode from "./nodes/CollectionNode";
 import hypernova from "./hypernova/hypernova";
 
 export default class Query {
-  public collection: IAggregable;
+  public collection: ICollection;
   private graph: CollectionNode;
   public readonly body: any;
   public queryName: string;
@@ -15,7 +15,7 @@ export default class Query {
    * @param collection
    * @param body
    */
-  constructor(collection: IAggregable, body: CollectionQueryBody) {
+  constructor(collection: ICollection, body: QueryBody) {
     this.collection = collection;
     this.queryName = collection.collectionName;
     this.body = _.cloneDeep(body);
