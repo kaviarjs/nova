@@ -5,7 +5,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "sourceMap": true,
-    "lib": ["es6", "dom", "esnext"],
+    "lib": ["esnext"],
     "noImplicitAny": false,
     "rootDir": "./src",
     "outDir": "./dist",
