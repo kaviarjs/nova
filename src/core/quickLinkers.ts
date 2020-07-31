@@ -2,19 +2,19 @@ import _ from "lodash";
 import { addLinks } from "./api";
 import { ICollection } from "./defs";
 
-export type QuickLinkingArguments = {
+export interface IQuickLinkingArguments {
   linkName: string;
   inversedLinkName?: string;
   /**
    * Defaults to linkName + 'Id' or 'Ids' depending how many we store
    */
   field?: string;
-};
+}
 
 export function oneToOne(
   C1: ICollection,
   C2: ICollection,
-  options: QuickLinkingArguments
+  options: IQuickLinkingArguments
 ) {
   addLinks(C1, {
     [options.linkName]: {
@@ -35,7 +35,7 @@ export function oneToOne(
 export function manyToOne(
   C1: ICollection,
   C2: ICollection,
-  options: QuickLinkingArguments
+  options: IQuickLinkingArguments
 ) {
   addLinks(C1, {
     [options.linkName]: {
@@ -55,7 +55,7 @@ export function manyToOne(
 export function oneToMany(
   C1: ICollection,
   C2: ICollection,
-  options: QuickLinkingArguments
+  options: IQuickLinkingArguments
 ) {
   addLinks(C1, {
     [options.linkName]: {
@@ -77,7 +77,7 @@ export function oneToMany(
 export function manyToMany(
   C1: ICollection,
   C2: ICollection,
-  options: QuickLinkingArguments
+  options: IQuickLinkingArguments
 ) {
   addLinks(C1, {
     [options.linkName]: {

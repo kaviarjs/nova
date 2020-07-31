@@ -1,4 +1,4 @@
-import { QueryBody } from "../../defs";
+import { IQueryBody } from "../../defs";
 
 export interface INode {
   name: string;

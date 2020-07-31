@@ -13,25 +13,27 @@ export interface ICollection {
   collectionName: string;
 }
 
-export type AstToQueryOptions = {
-  intersect?: QueryBody;
+export interface IAstToQueryOptions {
+  intersect?: IQueryBody;
   maxLimit?: number;
   maxDepth?: number;
   deny?: string[];
-  embody?(body: QueryBody, getArguments: (path: string) => any);
-};
+  filters?: any;
+  options?: any;
+  embody?(body: IQueryBody, getArguments: (path: string) => any);
+}
 
-export type StorageDataType = {
-  links: LinkOptions;
-  reducers: ReducerOptions;
-  expanders: ExpanderOptions;
-};
+export interface IStorageData {
+  links: ILinkOptions;
+  reducers: IReducerOptions;
+  expanders: IExpanderOptions;
+}
 
-export type FindOptions = {
+export interface IFindOptions {
   [key: string]: any;
-};
+}
 
-export type LinkCollectionOptions = {
+export interface ILinkCollectionOptions {
   collection: () => ICollection;
   field?: string;
   unique?: boolean;
@@ -40,48 +42,50 @@ export type LinkCollectionOptions = {
    * Applicable only when the link is on the other side
    */
   inversedBy?: string;
-};
+}
 
-export type ReducerOption = {
-  dependency: QueryBody;
+export interface IReducerOption {
+  dependency: IQueryBody;
   pipeline?: any[];
   projection?: any;
   reduce?: (object: any, params?: any) => any;
-};
+}
 
-export type LinkOptions = {
-  [key: string]: LinkCollectionOptions;
-};
+export interface ILinkOptions {
+  [key: string]: ILinkCollectionOptions;
+}
 
-export type ReducerOptions = {
-  [key: string]: ReducerOption;
-};
+export interface IReducerOptions {
+  [key: string]: IReducerOption;
+}
 
-export type ExpanderOptions = {
-  [key: string]: QueryBody;
-};
+export interface IExpanderOptions {
+  [key: string]: IQueryBody;
+}
 
-export type FieldMapOptions = {
+export interface IFieldMapOptions {
   [key: string]: string;
-};
+}
 
-export type Functionable<T> = ((...args: any[]) => T) | T;
+export type Functionable<T> = T | ((...args: any[]) => T);
 
-export type ParamaterableObject = {
-  filters?: any;
-  options?: {
-    limit?: number;
-    skip?: number;
-    sort?: {
-      [key: string]: any;
-    };
+export interface IQueryOptions {
+  limit?: number;
+  skip?: number;
+  sort?: {
+    [key: string]: any;
   };
+}
+
+export interface IParamaterableObject {
+  filters?: any;
+  options?: IQueryOptions;
   pipeline?: any[];
   [key: string]: any;
-};
+}
 
-export type QueryBody = {
-  $?: Functionable<ParamaterableObject>;
+export interface IQueryBody {
+  $?: Functionable<IParamaterableObject>;
   $alias?: string;
-  [field: string]: string | number | QueryBody | ParamaterableObject;
-};
+  [field: string]: string | number | IQueryBody | IParamaterableObject;
+}

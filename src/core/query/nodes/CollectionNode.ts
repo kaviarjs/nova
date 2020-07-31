@@ -2,7 +2,7 @@ import * as _ from "lodash";
 import * as dot from "dot-object";
 
 import { SPECIAL_PARAM_FIELD, ALIAS_FIELD } from "../../constants";
-import { QueryBody, ReducerOption, ICollection } from "../../defs";
+import { IQueryBody, IReducerOption, ICollection } from "../../defs";
 
 import {
   getLinker,
@@ -15,14 +15,14 @@ import { INode } from "./INode";
 import FieldNode from "./FieldNode";
 import ReducerNode from "./ReducerNode";
 
-export type CollectionNodeOptions = {
+export interface ICollectionNodeOptions {
   collection: ICollection;
-  body: QueryBody;
+  body: IQueryBody;
   explain?: boolean;
   name?: string;
   parent?: CollectionNode;
   linker?: Linker;
-};
+}
 
 export enum NodeLinkType {
   COLLECTION,
@@ -32,7 +32,7 @@ export enum NodeLinkType {
 }
 
 export default class CollectionNode implements INode {
-  public body: QueryBody;
+  public body: IQueryBody;
   public name: string;
   public collection: ICollection;
   public parent: CollectionNode;
@@ -57,7 +57,7 @@ export default class CollectionNode implements INode {
 
   public results: any = [];
 
-  constructor(options: CollectionNodeOptions) {
+  constructor(options: ICollectionNodeOptions) {
     const { collection, body, name, parent, linker, explain = false } = options;
 
     if (collection && !_.isObject(body)) {
@@ -134,11 +134,11 @@ export default class CollectionNode implements INode {
     return this.reducerNodes.find((node) => node.name === name);
   }
 
-  public getReducerConfig(name: string): ReducerOption {
+  public getReducerConfig(name: string): IReducerOption {
     return getReducerConfig(this.collection, name);
   }
 
-  public getExpanderConfig(name: string): QueryBody {
+  public getExpanderConfig(name: string): IQueryBody {
     return getExpanderConfig(this.collection, name);
   }
 
@@ -356,7 +356,7 @@ export default class CollectionNode implements INode {
   /**
    * This function creates the children properly for my root.
    */
-  private spread(body: QueryBody, fromReducerNode?: ReducerNode) {
+  private spread(body: IQueryBody, fromReducerNode?: ReducerNode) {
     _.forEach(body, (fieldBody, fieldName) => {
       if (!fieldBody) {
         return;
@@ -378,14 +378,14 @@ export default class CollectionNode implements INode {
       switch (linkType) {
         case NodeLinkType.COLLECTION:
           if (this.hasCollectionNode(alias)) {
-            this.getCollectionNode(alias).spread(fieldBody as QueryBody);
+            this.getCollectionNode(alias).spread(fieldBody as IQueryBody);
             return;
           }
 
           const linker = this.getLinker(alias);
 
           childNode = new CollectionNode({
-            body: fieldBody as QueryBody,
+            body: fieldBody as IQueryBody,
             collection: linker.getLinkedCollection(),
             linker,
             name: fieldName,
@@ -396,7 +396,7 @@ export default class CollectionNode implements INode {
           const reducerConfig = this.getReducerConfig(fieldName);
 
           childNode = new ReducerNode(fieldName, {
-            body: fieldBody as QueryBody,
+            body: fieldBody as IQueryBody,
             ...reducerConfig,
           });
 

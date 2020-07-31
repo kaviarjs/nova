@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.3.0
+
+- All interfaces now start with I
+- Easier filtering added for GraphQL queries
+
 ## 1.2.0
 
 - Dropped "index" utility, developers should implement their own

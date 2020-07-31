@@ -4,7 +4,7 @@ import * as graphqlFields from "graphql-fields";
 import { SPECIAL_PARAM_FIELD } from "../constants";
 import Query from "../query/Query";
 import intersectDeep from "./intersectDeep";
-import { ICollection, QueryBody, AstToQueryOptions } from "../defs";
+import { ICollection, IQueryBody, IAstToQueryOptions } from "../defs";
 
 export const ArgumentStore = Symbol("GraphQLArgumentStore");
 
@@ -12,7 +12,7 @@ const Errors = {
   MAX_DEPTH: "The maximum depth of this request exceeds the depth allowed.",
 };
 
-export function astToBody(ast): QueryBody {
+export function astToBody(ast): IQueryBody {
   const body = graphqlFields(ast, {}, { processArguments: true });
 
   replaceArgumentsWithOurs(body);
@@ -45,7 +45,7 @@ function replaceArgumentsWithOurs(body: any) {
 export default function astToQuery(
   collection: ICollection,
   ast,
-  config: AstToQueryOptions = {}
+  config: IAstToQueryOptions = {}
 ) {
   // get the body
   let body = astToBody(ast);
@@ -64,6 +64,20 @@ export default function astToQuery(
 
   if (config.intersect) {
     body = intersectDeep(body, config.intersect);
+  }
+
+  if (typeof body.$ !== "function") {
+    if (config.filters) {
+      body.$.filters = config.filters;
+    }
+
+    if (config.options) {
+      body.$.options = config.options;
+    }
+  } else {
+    throw new Error(
+      `You tried to apply filters and options on a functionable parameterable object.`
+    );
   }
 
   if (config.embody) {

@@ -1,11 +1,11 @@
 import {
-  ExpanderOptions,
-  LinkOptions,
-  QueryBody,
-  ReducerOption,
-  ReducerOptions,
+  IExpanderOptions,
+  ILinkOptions,
+  IQueryBody,
+  IReducerOption,
+  IReducerOptions,
   ICollection,
-  AstToQueryOptions,
+  IAstToQueryOptions,
 } from "./defs";
 
 import {
@@ -18,16 +18,16 @@ import * as _ from "lodash";
 import Linker from "./query/Linker";
 import Query from "./query/Query";
 import astToQuery from "./graphql/astToQuery";
-import { GetLookupOperatorOptions } from "./query/Linker";
+import { IGetLookupOperatorOptions } from "./query/Linker";
 
-export function query(collection: ICollection, body: QueryBody) {
+export function query(collection: ICollection, body: IQueryBody) {
   return new Query(collection, body);
 }
 
 query.graphql = (
   collection: ICollection,
   ast: any,
-  options: AstToQueryOptions
+  options: IAstToQueryOptions
 ) => {
   return astToQuery(collection, ast, options);
 };
@@ -38,7 +38,7 @@ export function clear(collection: ICollection) {
   collection[EXPANDER_STORAGE] = {};
 }
 
-export function addLinks(collection: ICollection, data: LinkOptions) {
+export function addLinks(collection: ICollection, data: ILinkOptions) {
   if (!collection[LINK_STORAGE]) {
     collection[LINK_STORAGE] = {};
   }
@@ -61,7 +61,7 @@ export function addLinks(collection: ICollection, data: LinkOptions) {
   });
 }
 
-export function addExpanders(collection: ICollection, data: ExpanderOptions) {
+export function addExpanders(collection: ICollection, data: IExpanderOptions) {
   if (!collection[EXPANDER_STORAGE]) {
     collection[EXPANDER_STORAGE] = {};
   }
@@ -102,7 +102,7 @@ export function hasLinker(collection: ICollection, name: string): boolean {
 export function lookup(
   collection: ICollection,
   linkName: string,
-  options?: GetLookupOperatorOptions
+  options?: IGetLookupOperatorOptions
 ) {
   return getLinker(collection, linkName).getLookupAggregationPipeline(options);
 }
@@ -110,7 +110,7 @@ export function lookup(
 export function getReducerConfig(
   collection: ICollection,
   name: string
-): ReducerOption {
+): IReducerOption {
   if (collection[REDUCER_STORAGE]) {
     return collection[REDUCER_STORAGE][name];
   }
@@ -119,13 +119,13 @@ export function getReducerConfig(
 export function getExpanderConfig(
   collection: ICollection,
   name: string
-): QueryBody {
+): IQueryBody {
   if (collection[EXPANDER_STORAGE]) {
     return collection[EXPANDER_STORAGE][name];
   }
 }
 
-export function addReducers(collection: ICollection, data: ReducerOptions) {
+export function addReducers(collection: ICollection, data: IReducerOptions) {
   if (!collection[REDUCER_STORAGE]) {
     collection[REDUCER_STORAGE] = {};
   }

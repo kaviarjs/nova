@@ -1,6 +1,6 @@
 import * as _ from "lodash";
 import { LINK_STORAGE } from "../constants";
-import { LinkCollectionOptions, ICollection } from "../defs";
+import { ILinkCollectionOptions, ICollection } from "../defs";
 
 export enum LinkStrategy {
   ONE,
@@ -9,7 +9,7 @@ export enum LinkStrategy {
 
 export default class Linker {
   public mainCollection: ICollection;
-  public linkConfig: LinkCollectionOptions & {
+  public linkConfig: ILinkCollectionOptions & {
     strategy: LinkStrategy;
   };
   public linkName: string;
@@ -24,7 +24,7 @@ export default class Linker {
   constructor(
     mainCollection: ICollection,
     linkName: string,
-    linkConfig: LinkCollectionOptions
+    linkConfig: ILinkCollectionOptions
   ) {
     this.mainCollection = mainCollection;
 
@@ -130,7 +130,7 @@ export default class Linker {
   /**
    * Returns the aggregation pipeline
    */
-  public getLookupAggregationPipeline(options: GetLookupOperatorOptions = {}) {
+  public getLookupAggregationPipeline(options: IGetLookupOperatorOptions = {}) {
     const localField = this.isVirtual() ? "_id" : this.linkStorageField;
     const foreignField = this.isVirtual() ? this.linkStorageField : "_id";
 
@@ -214,7 +214,7 @@ export default class Linker {
   }
 }
 
-export type GetLookupOperatorOptions = {
+export interface IGetLookupOperatorOptions {
   pipeline?: any[];
   as?: string;
-};
+}
