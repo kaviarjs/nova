@@ -27,25 +27,9 @@ The incredible speed boost is possible thanks to the technology called Hypernova
 - Works with the default MongoDB Node Drivers
 - Super light-weight integration for GraphQL
 
-## Installation
+## [Documentation](./DOCUMENTATION.md)
 
-```
-npm i -S @kaviar/nova
-```
-
-## [Documentation](docs/index.md)
-
-### [Table of Contents](docs/index.md)
-
-- [Linking collections](docs/index.md#linking-collections)
-- [Query-ing](docs/index.md#query-ing)
-- [Relational Filtering and Sorting](docs/index.md#relational-filtering-and-sorting)
-- [Dynamic Filters](docs/index.md#dynamic-filters)
-- [Reducers](docs/index.md#reducers)
-- [Aliased Collections](docs/index.md#aliased-collections)
-- [GraphQL Integration](docs/index.md#graphql-integration)
-- [Limitations](docs/index.md#limitations)
-- [Hypernova](docs/index.md#hypernova)
+[Click here to go to the documentation](./DOCUMENTATION.md)
 
 ## Sample
 

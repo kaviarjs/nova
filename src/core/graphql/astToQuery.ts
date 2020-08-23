@@ -49,6 +49,9 @@ export default function astToQuery(
 ) {
   // get the body
   let body = astToBody(ast);
+  if (!body.$) {
+    body.$ = {};
+  }
 
   // figure out depth based
   if (config.maxDepth) {
