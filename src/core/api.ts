@@ -1,7 +1,7 @@
 import {
   IExpanderOptions,
   ILinkOptions,
-  IQueryBody,
+  QueryBodyType,
   IReducerOption,
   IReducerOptions,
   ICollection,
@@ -20,7 +20,7 @@ import Query from "./query/Query";
 import astToQuery from "./graphql/astToQuery";
 import { IGetLookupOperatorOptions } from "./query/Linker";
 
-export function query(collection: ICollection, body: IQueryBody) {
+export function query(collection: ICollection, body: QueryBodyType) {
   return new Query(collection, body);
 }
 
@@ -119,7 +119,7 @@ export function getReducerConfig(
 export function getExpanderConfig(
   collection: ICollection,
   name: string
-): IQueryBody {
+): QueryBodyType {
   if (collection[EXPANDER_STORAGE]) {
     return collection[EXPANDER_STORAGE][name];
   }

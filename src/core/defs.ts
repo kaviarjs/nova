@@ -14,13 +14,13 @@ export interface ICollection {
 }
 
 export interface IAstToQueryOptions {
-  intersect?: IQueryBody;
+  intersect?: QueryBodyType;
   maxLimit?: number;
   maxDepth?: number;
   deny?: string[];
   filters?: any;
   options?: any;
-  embody?(body: IQueryBody, getArguments: (path: string) => any);
+  embody?(body: QueryBodyType, getArguments: (path: string) => any);
 }
 
 export interface IStorageData {
@@ -45,7 +45,7 @@ export interface ILinkCollectionOptions {
 }
 
 export interface IReducerOption {
-  dependency: IQueryBody;
+  dependency: QueryBodyType;
   pipeline?: any[];
   projection?: any;
   reduce?: (object: any, params?: any) => any;
@@ -60,7 +60,7 @@ export interface IReducerOptions {
 }
 
 export interface IExpanderOptions {
-  [key: string]: IQueryBody;
+  [key: string]: QueryBodyType;
 }
 
 export interface IFieldMapOptions {
@@ -81,11 +81,74 @@ export interface IParamaterableObject {
   filters?: any;
   options?: IQueryOptions;
   pipeline?: any[];
-  [key: string]: any;
 }
 
-export interface IQueryBody {
+export interface IPost {
+  title: string;
+  age: number;
+}
+
+export interface IPost {
+  title: string;
+  age: number;
+  user: IUser;
+}
+
+export interface IUser {
+  name: string;
+  comments: IComment[];
+}
+
+export interface IComment {
+  user: IUser;
+  title: string;
+}
+
+// The separation between body and sub body is the fact body doesn't have functionable $()
+export type BodyCustomise<T = any> = {
+  $?: IParamaterableObject;
+};
+
+export type SubBodyCustomise<T = any> = {
   $?: Functionable<IParamaterableObject>;
   $alias?: string;
-  [field: string]: string | number | IQueryBody | IParamaterableObject;
-}
+};
+
+export type FieldSpecificity =
+  | 1
+  | number
+  | boolean
+  // This is the part where a reducer is involved
+  | {
+      $: {
+        [key: string]: any;
+      };
+    }
+  // This is a type of project
+  | {
+      $filter: any;
+    };
+
+export type Unpacked<T> = T extends (infer U)[] ? U : T;
+
+export type AnyBody = SubBodyCustomise & {
+  [key: string]:
+    | FieldSpecificity
+    | AnyBody
+    | Functionable<IParamaterableObject>;
+};
+
+export type RootSpecificBody<T> = {
+  [K in keyof T]?:
+    | FieldSpecificity
+    // We do this because the type might be an array
+    | QuerySubBodyType<T[K] extends Array<any> ? Unpacked<T[K]> : T[K]>;
+};
+
+export type QueryBodyType<T = null> = BodyCustomise<T> &
+  (T extends null ? AnyBody : RootSpecificBody<T>);
+
+export type QuerySubBodyType<T = any> = SubBodyCustomise<T> &
+  (T extends null ? AnyBody : RootSpecificBody<T>);
+
+const body: QueryBodyType<any> = {};
