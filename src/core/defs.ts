@@ -137,11 +137,11 @@ type SimpleFieldValue =
 
 type Unpacked<T> = T extends (infer U)[] ? U : T;
 
-export type AnyBody = SubBodyCustomise & {
+export type AnyBody = {
   [key: string]:
-    | AnyBody
     | SimpleFieldValue
-    | ValueOrValueResolver<ICollectionQueryConfig>;
+    | ValueOrValueResolver<ICollectionQueryConfig>
+    | AnyBody;
 };
 
 type RootSpecificBody<T> = {
