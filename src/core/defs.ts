@@ -1,3 +1,5 @@
+import { FilterQuery } from "mongodb";
+
 export interface IToArrayable {
   toArray(): Promise<any[]>;
 }
@@ -67,80 +69,85 @@ export interface IFieldMapOptions {
   [key: string]: string;
 }
 
-export type Functionable<T> = T | ((...args: any[]) => T);
+export type ValueOrValueResolver<T> = T | ((...args: any[]) => T);
 
-export interface IQueryOptions {
+/**
+ * @deprecated Use QueryBody type instead to ensure type safety.
+ */
+export interface IQueryBody {
+  $?: ICollectionQueryConfig | ValueOrValueResolver<ICollectionQueryConfig>;
+  $alias?: string;
+  [field: string]:
+    | string
+    | number
+    | IQueryBody
+    | ICollectionQueryConfig
+    | ValueOrValueResolver<ICollectionQueryConfig>;
+}
+export interface IQueryOptions<T = any> {
   limit?: number;
   skip?: number;
-  sort?: {
-    [key: string]: any;
-  };
+  sort?:
+    | Array<[string, number]>
+    | {
+        [key in keyof T]?: number | boolean;
+      }
+    | { [key: string]: number | boolean };
 }
 
-export interface IParamaterableObject {
-  filters?: any;
-  options?: IQueryOptions;
+export interface ICollectionQueryConfig<T = any> {
+  filters?: T extends null ? any : FilterQuery<T>;
+  options?: IQueryOptions<T>;
   pipeline?: any[];
 }
 
-export interface IPost {
-  title: string;
-  age: number;
-}
-
-export interface IPost {
-  title: string;
-  age: number;
-  user: IUser;
-}
-
-export interface IUser {
-  name: string;
-  comments: IComment[];
-}
-
-export interface IComment {
-  user: IUser;
-  title: string;
-}
+/**
+ * @deprecated The naming was meaningless. Please use ICollectionQueryConfig
+ */
+export interface IParameterableObject extends ICollectionQueryConfig {}
 
 // The separation between body and sub body is the fact body doesn't have functionable $()
-export type BodyCustomise<T = any> = {
-  $?: IParamaterableObject;
+type BodyCustomise<T = null> = {
+  $?: ICollectionQueryConfig<T>;
 };
 
-export type SubBodyCustomise<T = any> = {
-  $?: Functionable<IParamaterableObject>;
+type SubBodyCustomise<T = null> = {
+  $?: ValueOrValueResolver<ICollectionQueryConfig<T>>;
   $alias?: string;
 };
 
-export type FieldSpecificity =
+type SimpleFieldValue =
   | 1
   | number
   | boolean
-  // This is the part where a reducer is involved
+  // This is the part where a reducer is involved and we pass params to it
   | {
       $: {
         [key: string]: any;
       };
     }
-  // This is a type of project
+  // This is a type of projection operator
   | {
       $filter: any;
     };
+// Nested field specification
+// | {
+//     [key: string]: SimpleFieldValue;
+//   };
 
-export type Unpacked<T> = T extends (infer U)[] ? U : T;
+type Unpacked<T> = T extends (infer U)[] ? U : T;
 
 export type AnyBody = SubBodyCustomise & {
   [key: string]:
-    | FieldSpecificity
     | AnyBody
-    | Functionable<IParamaterableObject>;
+    | SimpleFieldValue
+    | ValueOrValueResolver<ICollectionQueryConfig>;
 };
 
-export type RootSpecificBody<T> = {
+type RootSpecificBody<T> = {
   [K in keyof T]?:
-    | FieldSpecificity
+    | T[K]
+    | SimpleFieldValue
     // We do this because the type might be an array
     | QuerySubBodyType<T[K] extends Array<any> ? Unpacked<T[K]> : T[K]>;
 };
@@ -148,7 +155,5 @@ export type RootSpecificBody<T> = {
 export type QueryBodyType<T = null> = BodyCustomise<T> &
   (T extends null ? AnyBody : RootSpecificBody<T>);
 
-export type QuerySubBodyType<T = any> = SubBodyCustomise<T> &
+export type QuerySubBodyType<T = null> = SubBodyCustomise<T> &
   (T extends null ? AnyBody : RootSpecificBody<T>);
-
-const body: QueryBodyType<any> = {};

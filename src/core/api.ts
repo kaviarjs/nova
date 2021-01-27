@@ -20,7 +20,7 @@ import Query from "./query/Query";
 import astToQuery from "./graphql/astToQuery";
 import { IGetLookupOperatorOptions } from "./query/Linker";
 
-export function query(collection: ICollection, body: QueryBodyType) {
+export function query<T>(collection: ICollection, body: QueryBodyType) {
   return new Query(collection, body);
 }
 
