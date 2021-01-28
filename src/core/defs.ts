@@ -15,14 +15,14 @@ export interface ICollection {
   collectionName: string;
 }
 
-export interface IAstToQueryOptions {
-  intersect?: QueryBodyType;
+export interface IAstToQueryOptions<T = null> {
+  intersect?: QueryBodyType<T>;
   maxLimit?: number;
   maxDepth?: number;
   deny?: string[];
   filters?: any;
   options?: any;
-  embody?(body: QueryBodyType, getArguments: (path: string) => any);
+  embody?(body: QueryBodyType<T>, getArguments: (path: string) => any);
 }
 
 export interface IStorageData {
