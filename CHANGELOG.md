@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.3.1
+
+- Added ability to have type-safety for your request body with nesting support
+
 ## 1.3.0
 
 - All interfaces now start with I

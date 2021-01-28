@@ -4,7 +4,7 @@ import * as graphqlFields from "graphql-fields";
 import { SPECIAL_PARAM_FIELD } from "../constants";
 import Query from "../query/Query";
 import intersectDeep from "./intersectDeep";
-import { ICollection, IQueryBody, IAstToQueryOptions } from "../defs";
+import { ICollection, QueryBodyType, IAstToQueryOptions } from "../defs";
 
 export const ArgumentStore = Symbol("GraphQLArgumentStore");
 
@@ -12,7 +12,7 @@ const Errors = {
   MAX_DEPTH: "The maximum depth of this request exceeds the depth allowed.",
 };
 
-export function astToBody(ast): IQueryBody {
+export function astToBody(ast): QueryBodyType {
   const body = graphqlFields(ast, {}, { processArguments: true });
 
   replaceArgumentsWithOurs(body);

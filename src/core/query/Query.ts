@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import { IQueryBody, ICollection } from "../defs";
+import { QueryBodyType, ICollection } from "../defs";
 import CollectionNode from "./nodes/CollectionNode";
 import hypernova from "./hypernova/hypernova";
 
@@ -15,7 +15,7 @@ export default class Query {
    * @param collection
    * @param body
    */
-  constructor(collection: ICollection, body: IQueryBody) {
+  constructor(collection: ICollection, body: QueryBodyType) {
     this.collection = collection;
     this.queryName = collection.collectionName;
     this.body = _.cloneDeep(body);
