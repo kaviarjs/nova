@@ -371,6 +371,32 @@ addReducers(Posts, {
 });
 ```
 
+### Context in Reduce
+
+```ts
+addReducers(Users, {
+  fullName: {
+    dependency: {},
+    async reduce(obj, params) {
+      const { context } = params;
+      // Do something with context.language
+    },
+  },
+});
+
+// Let's pass the language as a context as the 3rd parameter to query
+// Context will reach reducers
+query(
+  Users,
+  {
+    fullName: 1,
+  },
+  {
+    language: "en",
+  }
+);
+```
+
 Notes:
 
 - Do not specify nested fields, use instead: `profile.name: 1` => `profile: { name: 1 }`
