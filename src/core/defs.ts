@@ -15,6 +15,10 @@ export interface ICollection {
   collectionName: string;
 }
 
+export interface IQueryContext {
+  // Do be extended by others
+}
+
 export interface IAstToQueryOptions<T = null> {
   intersect?: QueryBodyType<T>;
   maxLimit?: number;
@@ -23,6 +27,10 @@ export interface IAstToQueryOptions<T = null> {
   filters?: any;
   options?: any;
   embody?(body: QueryBodyType<T>, getArguments: (path: string) => any);
+  /**
+   * This gets deeply merged with the body (useful for $ argument)
+   */
+  sideBody?: QueryBodyType<T>;
 }
 
 export interface IStorageData {
@@ -46,11 +54,18 @@ export interface ILinkCollectionOptions {
   inversedBy?: string;
 }
 
-export interface IReducerOption {
+export interface IReducerOption<
+  ReturnType = any,
+  ParamsType = any,
+  ParentType = any
+> {
   dependency: QueryBodyType;
   pipeline?: any[];
   projection?: any;
-  reduce?: (object: any, params?: any) => any;
+  reduce?: (
+    object: ParentType,
+    params?: ParamsType & { context: IQueryContext }
+  ) => ReturnType | Promise<ReturnType>;
 }
 
 export interface ILinkOptions {

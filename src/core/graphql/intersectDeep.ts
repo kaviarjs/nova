@@ -1,11 +1,21 @@
 import * as _ from "lodash";
 import FieldNode from "../query/nodes/FieldNode";
 import { ArgumentStore } from "./astToQuery";
+import { SPECIAL_PARAM_FIELD } from "../constants";
 
+/**
+ * Intersects two query bodies and returns the result
+ *
+ * @param what
+ * @param intersection
+ */
 export default function intersectDeep(what, intersection) {
   const result = {};
   if (what[ArgumentStore]) {
     result[ArgumentStore] = what[ArgumentStore];
+  }
+  if (what[SPECIAL_PARAM_FIELD]) {
+    result[SPECIAL_PARAM_FIELD] = what[SPECIAL_PARAM_FIELD];
   }
 
   _.forEach(intersection, (value, fieldName) => {

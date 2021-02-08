@@ -6,6 +6,7 @@ import {
   IReducerOptions,
   ICollection,
   IAstToQueryOptions,
+  IQueryContext,
 } from "./defs";
 
 import {
@@ -20,8 +21,12 @@ import Query from "./query/Query";
 import astToQuery from "./graphql/astToQuery";
 import { IGetLookupOperatorOptions } from "./query/Linker";
 
-export function query<T>(collection: ICollection, body: QueryBodyType) {
-  return new Query(collection, body);
+export function query<T>(
+  collection: ICollection,
+  body: QueryBodyType,
+  context?: IQueryContext
+) {
+  return new Query(collection, body, context);
 }
 
 query.graphql = (

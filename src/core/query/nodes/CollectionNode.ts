@@ -7,6 +7,7 @@ import {
   IReducerOption,
   ICollection,
   QuerySubBodyType,
+  IQueryContext,
 } from "../../defs";
 
 import {
@@ -62,7 +63,10 @@ export default class CollectionNode implements INode {
 
   public results: any = [];
 
-  constructor(options: ICollectionNodeOptions) {
+  constructor(
+    options: ICollectionNodeOptions,
+    public readonly context: IQueryContext
+  ) {
     const { collection, body, name, parent, linker, explain = false } = options;
 
     if (collection && !_.isObject(body)) {
@@ -389,21 +393,28 @@ export default class CollectionNode implements INode {
 
           const linker = this.getLinker(alias);
 
-          childNode = new CollectionNode({
-            body: fieldBody as QueryBodyType,
-            collection: linker.getLinkedCollection(),
-            linker,
-            name: fieldName,
-            parent: this,
-          });
+          childNode = new CollectionNode(
+            {
+              body: fieldBody as QueryBodyType,
+              collection: linker.getLinkedCollection(),
+              linker,
+              name: fieldName,
+              parent: this,
+            },
+            this.context
+          );
           break;
         case NodeLinkType.REDUCER:
           const reducerConfig = this.getReducerConfig(fieldName);
 
-          childNode = new ReducerNode(fieldName, {
-            body: fieldBody as QueryBodyType,
-            ...reducerConfig,
-          });
+          childNode = new ReducerNode(
+            fieldName,
+            {
+              body: fieldBody as QueryBodyType,
+              ...reducerConfig,
+            },
+            this.context
+          );
 
           /**
            * This scenario is when a reducer is using another reducer

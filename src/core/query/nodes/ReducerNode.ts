@@ -1,4 +1,4 @@
-import { QueryBodyType, IReducerOption } from "../../defs";
+import { QueryBodyType, IReducerOption, IQueryContext } from "../../defs";
 import { SPECIAL_PARAM_FIELD } from "../../constants";
 import { INode } from "./INode";
 
@@ -21,7 +21,11 @@ export default class ReducerNode implements INode {
   // This is a list of reducer nodes this uses
   public dependencies: any = [];
 
-  constructor(name, options: ReducerNodeOptions) {
+  constructor(
+    name,
+    options: ReducerNodeOptions,
+    public readonly context?: IQueryContext
+  ) {
     this.name = name;
     this.reduceFunction = options.reduce;
     this.dependency = options.dependency;
@@ -47,7 +51,10 @@ export default class ReducerNode implements INode {
       return;
     }
 
-    object[this.name] = await this.reduce.call(this, object, this.props);
+    object[this.name] = await this.reduce.call(this, object, {
+      ...this.props,
+      context: this.context,
+    });
   }
 
   /**

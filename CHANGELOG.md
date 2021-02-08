@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.4.0
+
+- Added context into query, allowing reducers to have a context
+- Added sideBody into AstToQueryOptions allowing merge between graphs
+- Exported intersectDeep and mergeDeep as they may be useful outside
+
 ## 1.3.1
 
 - Added ability to have type-safety for your request body with nesting support

@@ -5,6 +5,7 @@ import { SPECIAL_PARAM_FIELD } from "../constants";
 import Query from "../query/Query";
 import intersectDeep from "./intersectDeep";
 import { ICollection, QueryBodyType, IAstToQueryOptions } from "../defs";
+import { mergeDeep } from "./mergeDeep";
 
 export const ArgumentStore = Symbol("GraphQLArgumentStore");
 
@@ -13,7 +14,11 @@ const Errors = {
 };
 
 export function astToBody(ast): QueryBodyType {
-  const body = graphqlFields(ast, {}, { processArguments: true });
+  const body = graphqlFields(
+    ast,
+    {},
+    { processArguments: true, excludedFields: ["__typename"] }
+  );
 
   replaceArgumentsWithOurs(body);
 
@@ -53,6 +58,24 @@ export default function astToQuery(
     body.$ = {};
   }
 
+  if (typeof body.$ !== "function") {
+    if (config.filters) {
+      body.$.filters = config.filters;
+    }
+
+    if (config.options) {
+      body.$.options = config.options;
+    }
+  } else {
+    throw new Error(
+      `You tried to apply filters and options on a functionable parameterable object.`
+    );
+  }
+
+  if (config.sideBody) {
+    mergeDeep(body, config.sideBody);
+  }
+
   // figure out depth based
   if (config.maxDepth) {
     const currentMaxDepth = getMaxDepth(body);
@@ -67,20 +90,6 @@ export default function astToQuery(
 
   if (config.intersect) {
     body = intersectDeep(body, config.intersect);
-  }
-
-  if (typeof body.$ !== "function") {
-    if (config.filters) {
-      body.$.filters = config.filters;
-    }
-
-    if (config.options) {
-      body.$.options = config.options;
-    }
-  } else {
-    throw new Error(
-      `You tried to apply filters and options on a functionable parameterable object.`
-    );
   }
 
   if (config.embody) {
@@ -100,7 +109,7 @@ export default function astToQuery(
 export function getMaxDepth(body) {
   const depths = [];
   for (const key in body) {
-    if (_.isObject(body[key])) {
+    if (key !== SPECIAL_PARAM_FIELD && _.isObject(body[key])) {
       depths.push(getMaxDepth(body[key]));
     }
   }
