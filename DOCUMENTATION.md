@@ -495,6 +495,10 @@ const Query = {
         // Simply removes from the graph what fields it won't allow
         // Can work with deep strings like 'comments.author'
         deny: [], // String[]
+
+        // This will get merged with the main body before applying all security restrictions
+        // It is called side, because usually it's designed to blend "$" objects into an extracted query from GQL
+        sideBody: {},
       })
       .fetch();
   },
