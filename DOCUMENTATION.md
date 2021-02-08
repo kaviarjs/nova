@@ -196,6 +196,8 @@ query(Posts, {
 
 ## Relational Filtering and Sorting
 
+### Filtering
+
 While working with MongoDB, another pain-point was what we call `relational filtering`, which simply means, I want to get all employees that belong in a company that is verified. Then what if I want to paginate them?
 
 All of these problems are currently solved, and we belive the API is far superior than SQL in terms of clarity.
@@ -281,6 +283,30 @@ query(Companies, {
   },
 });
 ```
+
+### Sorting
+
+A common scenario is to sort by other's field value. For example I'm looking at employees but I'm sorting the list by Company's name. Where `company` is the link from `employees` collection.
+
+```ts
+// We are looking for A's which have exactly 2 B's
+const result = await query(Employees, {
+  $: {
+    pipeline: [
+      lookup(Employees, "company"),
+      {
+        $sort: {
+          "company.name": 1,
+        },
+      },
+    ],
+  },
+  _id: 1,
+  // other fields
+}).fetch();
+```
+
+You can apply sorting even for computed values, as you've seen above, where we calculated the departments count.
 
 ## Dynamic Filters
 
