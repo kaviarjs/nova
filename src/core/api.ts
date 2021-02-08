@@ -32,9 +32,10 @@ export function query<T>(
 query.graphql = (
   collection: ICollection,
   ast: any,
-  options: IAstToQueryOptions
+  options: IAstToQueryOptions,
+  context?: IQueryContext
 ) => {
-  return astToQuery(collection, ast, options);
+  return astToQuery(collection, ast, options, context);
 };
 
 export function clear(collection: ICollection) {

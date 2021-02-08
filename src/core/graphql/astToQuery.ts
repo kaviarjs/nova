@@ -4,7 +4,12 @@ import * as graphqlFields from "graphql-fields";
 import { SPECIAL_PARAM_FIELD } from "../constants";
 import Query from "../query/Query";
 import intersectDeep from "./intersectDeep";
-import { ICollection, QueryBodyType, IAstToQueryOptions } from "../defs";
+import {
+  ICollection,
+  QueryBodyType,
+  IAstToQueryOptions,
+  IQueryContext,
+} from "../defs";
 import { mergeDeep } from "./mergeDeep";
 
 export const ArgumentStore = Symbol("GraphQLArgumentStore");
@@ -50,7 +55,8 @@ function replaceArgumentsWithOurs(body: any) {
 export default function astToQuery(
   collection: ICollection,
   ast,
-  config: IAstToQueryOptions = {}
+  config: IAstToQueryOptions = {},
+  context?: IQueryContext
 ) {
   // get the body
   let body = astToBody(ast);
@@ -103,7 +109,7 @@ export default function astToQuery(
   }
 
   // we return the query
-  return new Query(collection, body);
+  return new Query(collection, body, context);
 }
 
 export function getMaxDepth(body) {
