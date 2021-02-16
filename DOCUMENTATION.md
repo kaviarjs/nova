@@ -491,7 +491,8 @@ import { query } from "@kaviar/nova";
 const Query = {
   users(_, args, context, info) {
     return query
-      .graphql(A, info, {
+      // Please note that this is a MongoDB collection instance
+      .graphql(myMongoDBCollection, info, {
         // Manipulate the transformed body
         // Here, you would be able to remove certain fields, or manipulate the Nova Query body
         // This happens before creating the nodes, so it gives you a chance to do whatever you wish
