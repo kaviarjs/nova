@@ -161,10 +161,9 @@ export type AnyBody = {
 
 type RootSpecificBody<T> = {
   [K in keyof T]?:
-    | T[K]
     | SimpleFieldValue
     // We do this because the type might be an array
-    | QuerySubBodyType<T[K] extends Array<any> ? Unpacked<T[K]> : T[K]>;
+    | QuerySubBodyType<Unpacked<T[K]>>;
 };
 
 export type QueryBodyType<T = null> = BodyCustomise<T> &
