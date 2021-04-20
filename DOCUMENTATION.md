@@ -19,7 +19,7 @@ The incredible speed boost is possible thanks to the technology called Hypernova
 npm i -S @kaviar/nova
 ```
 
-## Linking collections
+## Linking Collections
 
 Collections are linked through `addLinks(collection, linkingInformation)`, collections are instances of `mongodb.Collection`, if you are using, for example `mongoose` or `Meteor` you can access it like this:
 
@@ -31,13 +31,16 @@ Model.collection;
 Collection.rawCollection();
 ```
 
+Let us create a One-to-One relationship in which we have `Patients` and `MedicalProfiles` in two distinct collections.
+
 ```typescript
 import { addLinks } from "@kaviar/nova";
 
 addLinks(Patients, {
+  // This is the name of the link
   medicalProfile: {
     collection: () => MedicalProfiles,
-    // Where to read the linking information
+    // Where to read the id, that exists in MedicalProfiles
     field: "medicalProfileId",
     // Whether it's an array of ids, or just a single id, in our case
     // By default it's false.
@@ -92,7 +95,7 @@ const medicalProfile = await query(MedicalProfiles, {
 }).fetchOne();
 ```
 
-However, this time you will notice that `medicalProfile.patient` is actually an array. And that's because it doesn't know it's unique, because this strategy can also be applied to having many. Imagine that if you want to link `Comments` with `Post` via a `postId` stored in the `Comments` collection, you would do the same type of linking.
+However, this time you will notice that `medicalProfile.patient` is actually an array. And that's because it doesn't know it's unique, because this strategy can also be applied to having `One-to-One` and `One-to-Many`. Imagine that if you want to link `Comments` with `Post` via a `postId` stored in the `Comments` collection, you would do the same type of linking, it's a link of type `one`.
 
 In our case, the solution is to add `unique: true` when defining the `medicalProfile` link inside `Patients` collection:
 
@@ -101,7 +104,65 @@ addLinks(Patients, {
   medicalProfile: {
     collection: () => MedicalProfiles,
     field: "medicalProfileId",
+    // This tells us that this relationship is definitely One-to-One.
     unique: true,
+  },
+});
+```
+
+### Examples
+
+Let us explore all type of relationships that can exist:
+
+**A One-to-One B**
+
+```ts
+addLinks(A, {
+  b: {
+    collection: () => B,
+    field: "bId",
+    unique: true,
+  },
+});
+addLinks(B, {
+  a: {
+    collection: () => A,
+    inversedBy: "b",
+  },
+});
+```
+
+**A One-to-Many B**
+
+```ts
+addLinks(A, {
+  bs: {
+    collection: () => B,
+    inversedBy: "a",
+  },
+});
+addLinks(B, {
+  a: {
+    collection: () => A,
+    field: "aId",
+  },
+});
+```
+
+**A Many-to-Many B**
+
+```ts
+addLinks(A, {
+  bs: {
+    collection: () => B,
+    field: "bIds",
+    many: true,
+  },
+});
+addLinks(B, {
+  a: {
+    collection: () => A,
+    inversedBy: "bs",
   },
 });
 ```
@@ -490,44 +551,46 @@ import { query } from "@kaviar/nova";
 // Define your query resolvers
 const Query = {
   users(_, args, context, info) {
-    return query
-      // Please note that this is a MongoDB collection instance
-      .graphql(myMongoDBCollection, info, {
-        // Manipulate the transformed body
-        // Here, you would be able to remove certain fields, or manipulate the Nova Query body
-        // This happens before creating the nodes, so it gives you a chance to do whatever you wish
-        embody(body, getArguments) {
-          body.$ = {
-            // Set some options here
-          };
+    return (
+      query
+        // Please note that this is a MongoDB collection instance
+        .graphql(myMongoDBCollection, info, {
+          // Manipulate the transformed body
+          // Here, you would be able to remove certain fields, or manipulate the Nova Query body
+          // This happens before creating the nodes, so it gives you a chance to do whatever you wish
+          embody(body, getArguments) {
+            body.$ = {
+              // Set some options here
+            };
 
-          // You can get the arguments of any path
-          const commentsArgument = getArguments("comments");
+            // You can get the arguments of any path
+            const commentsArgument = getArguments("comments");
 
-          // Comments author's arguments
-          const authorArguments = getArguments("comments.author");
-        },
+            // Comments author's arguments
+            const authorArguments = getArguments("comments.author");
+          },
 
-        // Intersection is what they have in common
-        // This is the best way to secure your graph. By stating explicitly what you allow query-ing
-        intersect: {},
+          // Intersection is what they have in common
+          // This is the best way to secure your graph. By stating explicitly what you allow query-ing
+          intersect: {},
 
-        // This is useful to avoid a nested attack
-        // Depth applies to deeply nested fields, not only collection links
-        maxDepth: 10,
+          // This is useful to avoid a nested attack
+          // Depth applies to deeply nested fields, not only collection links
+          maxDepth: 10,
 
-        // Automatically enforces a maximum number of results
-        maxLimit: 10,
+          // Automatically enforces a maximum number of results
+          maxLimit: 10,
 
-        // Simply removes from the graph what fields it won't allow
-        // Can work with deep strings like 'comments.author'
-        deny: [], // String[]
+          // Simply removes from the graph what fields it won't allow
+          // Can work with deep strings like 'comments.author'
+          deny: [], // String[]
 
-        // This will get merged with the main body before applying all security restrictions
-        // It is called side, because usually it's designed to blend "$" objects into an extracted query from GQL
-        sideBody: {},
-      })
-      .fetch();
+          // This will get merged with the main body before applying all security restrictions
+          // It is called side, because usually it's designed to blend "$" objects into an extracted query from GQL
+          sideBody: {},
+        })
+        .fetch()
+    );
   },
 };
 ```
