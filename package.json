@@ -49,7 +49,7 @@
     "mongoose": "^5.7.5",
     "prettier": "^2.0.5",
     "sinon": "^7.5.0",
-    "sinon-chai": "^2.9.0",
+    "sinon-chai": "^3.7.0",
     "source-map-support": "^0.5.13",
     "typescript": "^4.0.2"
   },
