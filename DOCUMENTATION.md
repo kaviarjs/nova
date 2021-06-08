@@ -458,7 +458,7 @@ addReducers(Posts, {
 });
 ```
 
-### Context in Reduce
+### Context in Reducers
 
 ```ts
 addReducers(Users, {
@@ -482,6 +482,18 @@ query(
     language: "en",
   }
 );
+```
+
+Extend the `IQueryContext` interface to benefit of autocompletion:
+
+```ts title="declarations.ts";
+import "@kaviar/nova";
+
+declare module "@kaviar/nova" {
+  export interface IQueryContext {
+    language: string;
+  }
+}
 ```
 
 Notes:

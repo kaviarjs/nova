@@ -54,9 +54,10 @@ export interface ILinkCollectionOptions {
   inversedBy?: string;
 }
 
+type AnyObject = { [key: string]: any };
 export interface IReducerOption<
   ReturnType = any,
-  ParamsType = any,
+  ParamsType = AnyObject,
   ParentType = any
 > {
   dependency: QueryBodyType;
@@ -64,7 +65,7 @@ export interface IReducerOption<
   projection?: any;
   reduce?: (
     object: ParentType,
-    params?: ParamsType & { context: IQueryContext }
+    params?: { context: IQueryContext } & ParamsType
   ) => ReturnType | Promise<ReturnType>;
 }
 

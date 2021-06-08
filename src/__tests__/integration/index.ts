@@ -605,6 +605,7 @@ describe("Main tests", function () {
           },
         },
         async reduce(obj, { context }) {
+          // @ts-ignore
           assert.equal(context.test, 1);
           return `${obj.profile.firstName} ${obj.profile.lastName}`;
         },
