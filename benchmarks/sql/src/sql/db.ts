@@ -1,7 +1,7 @@
 import { Sequelize, DataTypes } from "sequelize";
 
-export const sequelize = new Sequelize("novaBenchmarks", "root", null, {
-  dialect: "mysql",
+export const sequelize = new Sequelize("postgres", null, null, {
+  dialect: "postgres",
   logging: false,
 });
 

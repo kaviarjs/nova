@@ -1,5 +1,4 @@
 import * as db from "./db";
-import { v4 as uuid } from "uuid";
 import * as _ from "lodash";
 import {
   FORCE_FIXTURES,
@@ -11,23 +10,24 @@ import {
   COMMENT_TEXT_SAMPLES,
   USERS_COUNT,
 } from "../constants";
+import { createRandomUser, createRandomPost, createComment } from "../common";
 
 export async function runFixtures() {
   await db.sequelize.authenticate();
+  await db.sequelize.drop();
   await db.sequelize.sync();
 
-  const foundUsers = await db.User.findAll();
+  // const foundUsers = await db.User.findAll();
+  // if (!FORCE_FIXTURES) {
+  //   if (foundUsers.length) {
+  //     console.log(
+  //       "[ok] we are no longer loading fixtures, we found users, we assume they are loaded"
+  //     );
+  //     return;
+  //   }
+  // }
 
-  if (!FORCE_FIXTURES) {
-    if (foundUsers.length) {
-      console.log(
-        "[ok] we are no longer loading fixtures, we found users, we assume they are loaded"
-      );
-      return;
-    }
-  }
-
-  console.log("[ok] now started to load fixtures, patience padawan!");
+  // console.log("[ok] now started to load fixtures, patience padawan!");
 
   let tags = [];
   for (let i in TAGS) {
@@ -36,14 +36,12 @@ export async function runFixtures() {
   }
 
   let groups = [];
-
   for (let i in GROUPS) {
     const group = await db.Group.create({ name: GROUPS[i] });
     groups.push(group);
   }
 
   let categories = [];
-
   for (let i in POST_CATEGORIES) {
     const category = await db.PostCategory.create({ name: POST_CATEGORIES[i] });
     categories.push(category);
@@ -51,39 +49,32 @@ export async function runFixtures() {
 
   let users = [];
   for (let i = 0; i < USERS_COUNT; i++) {
-    const user = await db.User.create({
-      email: `user-${uuid()}@app.com`,
-      password: `12345`,
-    });
+    const user = await db.User.create(createRandomUser());
 
     users.push(user);
   }
 
-  for (let k = 0; k < users.length; k++) {
-    const user = users[k];
-    await user.addGroup(_.sample(groups));
+  for (let i = 0; i < users.length; i++) {
+    const user = users[i];
+    await user.addGroup(groups[i % groups.length]);
 
-    for (let i = 0; i < POST_PER_USER; i++) {
-      let post = await db.Post.create({
-        title: `User Post - ${i}`,
-      });
+    for (let j = 0; j < POST_PER_USER; j++) {
+      let post = await db.Post.create(createRandomPost(j));
 
       /* @ts-ignore */
-      await post.setPostCategory(_.sample(categories));
+      await post.setPostCategory(categories[j % categories.length]);
       /* @ts-ignore */
       await post.setUser(user);
       /* @ts-ignore */
-      await post.addTag(_.sample(tags));
+      await post.addTag(tags[j % tags.length]);
 
-      for (let j = 0; j < COMMENTS_PER_POST; j++) {
-        let comment = await db.Comment.create({
-          text: _.sample(COMMENT_TEXT_SAMPLES),
-        });
+      for (let k = 0; k < COMMENTS_PER_POST; k++) {
+        let comment = await db.Comment.create(createComment());
 
         /* @ts-ignore */
         await comment.setPost(post);
         /* @ts-ignore */
-        await comment.setUser(_.sample(users));
+        await comment.setUser(users[(k % users.length) - 1]);
       }
     }
   }
