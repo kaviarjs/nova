@@ -798,3 +798,51 @@ Example:
 Let's assume we have 100 posts, and the total number of categories is like 4. Hypernova does 2 requests to the database,
 and fetches 100 posts, and 4 categories. If you would have used `JOIN` functionality in SQL, you would have received
 the categories for each post.
+
+## Geographical Queries
+
+If you would try to pass any of the following filters to a field, in the standard way (`$geoNear, $near, and $nearSphere`), it will fail saying: `$geoNear, $near, and $nearSphere are not allowed in this context`. The reason this happens is because our filters get transformed into a `$match` inside pipeline, and these ones aren't allowed.
+
+The solution is to extend the pipeline as such:
+
+```ts
+const result = await query(Addresses, {
+  $: {
+    pipeline: [
+      {
+        $geoNear: {
+          includeLocs: "loc",
+          distanceField: "distance",
+          near: { type: "Point", coordinates: [-73.99279, 40.719296] },
+          maxDistance: 2,
+        },
+      },
+    ],
+  },
+  name: 1,
+}).toArray();
+```
+
+If you are using it in a GraphQL request:
+
+```ts
+const Query = {
+  nearAddresses(_, args, context, info) {
+    return query
+      .graphql(Addresses, info, {
+        sideBody: {
+          $: {
+            pipeline: [
+              {
+                $geoNear: {
+                  // here it goes
+                },
+              },
+            ],
+          },
+        },
+      })
+      .fetch();
+  },
+};
+```
