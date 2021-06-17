@@ -34,6 +34,7 @@ describe("Main tests", function () {
   let C: Collection;
   let D: Collection;
   let E: Collection;
+  let GeoPoint: Collection;
 
   beforeAll(async () => {
     A = await getRandomCollection("A");
@@ -41,6 +42,7 @@ describe("Main tests", function () {
     C = await getRandomCollection("C");
     D = await getRandomCollection("D");
     E = await getRandomCollection("E");
+    GeoPoint = await getRandomCollection("GeoPoint");
   });
 
   // Cleans the collection and their defined links
@@ -1134,5 +1136,34 @@ describe("Main tests", function () {
     assert.lengthOf(post.comments, 10);
     assert.equal(post.comments[0].number, 39);
     assert.equal(post.comments[9].number, 30);
+  });
+
+  it("Should work with geonear points", async () => {
+    GeoPoint.createIndex({
+      loc: "2dsphere",
+    });
+    GeoPoint.insertOne({
+      loc: { type: "Point", coordinates: [-73.99279, 40.719296] },
+      name: "Central Park",
+      category: "Parks",
+    });
+
+    const result = await query(GeoPoint, {
+      $: {
+        pipeline: [
+          {
+            $geoNear: {
+              includeLocs: "loc",
+              distanceField: "distance",
+              near: { type: "Point", coordinates: [-73.99279, 40.719296] },
+              maxDistance: 2,
+            },
+          },
+        ],
+      },
+      name: 1,
+    }).toArray();
+
+    assert.lengthOf(result, 1);
   });
 });

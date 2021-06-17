@@ -328,6 +328,8 @@ export default class CollectionNode implements INode {
       pipeline.push({ $match: filters });
     }
 
+    // TODO: transform filters to extract $geoNear, $near and $nearSphere
+
     pipeline.push(...pipelineFromProps);
 
     if (options.sort) {
