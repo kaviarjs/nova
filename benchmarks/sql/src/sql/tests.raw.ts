@@ -34,10 +34,10 @@ export const suites: ITestSuite[] = [
         .select([
           "users.email",
           "posts.title",
-          "comments.text",
-          "groups.name as userGroupName",
           "postCategories.name as postCategoryName",
           "tags.name as postTagName",
+          "groups.name as userGroupName",
+          "comments.text",
           "commentsUsers.email as commentUserEmail",
         ])
         .from("users");

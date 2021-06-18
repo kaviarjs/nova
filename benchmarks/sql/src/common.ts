@@ -34,9 +34,15 @@ export interface ITestResults {
   firstRun: number;
 }
 
-export async function testSuite(suites: ITestSuite[]) {
+export async function testSuite(
+  suites: ITestSuite[],
+  options: {
+    runSanityChecks?: boolean;
+    times?: number;
+  } = {}
+) {
   for (const suite of suites) {
-    const result = await testRunner(suite);
+    const result = await testRunner(suite, options);
     console.log(suite.name, {
       fastest: result.fastest + "ms",
       slowest: result.slowest + "ms",
@@ -50,14 +56,22 @@ export async function testSuite(suites: ITestSuite[]) {
 
 export async function testRunner(
   suite: ITestSuite,
-  times = DEFAULT_RUN_TESTS
+  options: {
+    runSanityChecks?: boolean;
+    times?: number;
+  } = {}
 ): Promise<ITestResults> {
+  options = Object.assign(
+    { runSanityChecks: true, times: DEFAULT_RUN_TESTS },
+    options
+  );
+
   let sum = 0;
   let slowest = 0;
   let firstRun = 0;
   let fastest = Infinity;
 
-  for (let i = 0; i < times; i++) {
+  for (let i = 0; i < options.times; i++) {
     const now = new Date();
     const result = await suite.run();
 
@@ -74,7 +88,7 @@ export async function testRunner(
       firstRun = timeElapsed;
     }
 
-    if (i === 0 && sanity[suite.name]) {
+    if (options.runSanityChecks && i === 0 && sanity[suite.name]) {
       sanity[suite.name](result);
     }
   }
@@ -82,8 +96,8 @@ export async function testRunner(
   return {
     fastest,
     slowest,
-    mean: sum / times,
-    iterations: times,
+    mean: sum / options.times,
+    iterations: options.times,
     firstRun,
   };
 }
