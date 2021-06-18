@@ -5,8 +5,9 @@ import { suites } from "./tests";
 
 async function run() {
   await setup();
-  // await runFixtures();
+  await runFixtures();
   await testSuite(suites);
+  process.exit(0);
 }
 
 run();

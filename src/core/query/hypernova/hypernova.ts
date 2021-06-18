@@ -7,6 +7,7 @@ async function hypernova(collectionNode: CollectionNode) {
 
   for (const childCollectionNode of collectionNodes) {
     await storeHypernovaResults(childCollectionNode);
+
     await hypernova(childCollectionNode);
   }
 }

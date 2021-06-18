@@ -26,7 +26,6 @@ export default async function storeHypernovaResults(
   childCollectionNode.results = await childCollectionNode.toArray(
     hypernovaFilters
   );
-
   // if it's not virtual then we retrieve them and assemble them here.
   if (!isVirtual) {
     processDirectNode(childCollectionNode);

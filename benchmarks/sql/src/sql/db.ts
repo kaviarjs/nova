@@ -1,8 +1,19 @@
 import { Sequelize, DataTypes } from "sequelize";
+import * as knex from "knex";
 
 export const sequelize = new Sequelize("postgres", null, null, {
   dialect: "postgres",
   logging: false,
+});
+
+export const queryBuilder = knex({
+  client: "pg",
+  connection: {
+    host: "127.0.0.1",
+    user: null,
+    password: null,
+    database: "postgres",
+  },
 });
 
 export const User = sequelize.define("user", {
@@ -40,15 +51,15 @@ export const Comment = sequelize.define("comment", {
 // Define relationships
 
 // User & Group
-Group.belongsToMany(User, { as: "Users", through: "UserGroup" });
-User.belongsToMany(Group, { as: "Groups", through: "UserGroup" });
+Group.belongsToMany(User, { as: "users", through: "UserGroup" });
+User.belongsToMany(Group, { as: "groups", through: "UserGroup" });
 
 // Tag & Post
 Tag.belongsToMany(Post, { through: "PostTag" });
 Post.belongsToMany(Tag, { through: "PostTag" });
 
 // Post & PostCategory
-PostCategory.hasMany(Post, { as: "Posts" });
+PostCategory.hasMany(Post, { as: "posts" });
 Post.belongsTo(PostCategory);
 
 Post.hasMany(Comment, { as: "comments" });

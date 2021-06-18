@@ -12,12 +12,8 @@ import { db } from "./db";
 import { createRandomUser, createRandomPost } from "../common";
 
 export async function runFixtures() {
-  // if ((await db.Users.find().count()) > 0) {
-  //   return;
-  // }
-
   for (const collKey in db) {
-    console.log(`Clearing up: "${collKey}"`);
+    console.log(`Deleting all documents from: "${collKey}"`);
     await db[collKey].removeMany({});
   }
 
@@ -45,7 +41,7 @@ export async function runFixtures() {
   for (let i = 0; i < USERS_COUNT; i++) {
     const user = await db.Users.insertOne({
       ...createRandomUser(),
-      groupsIds: groups[i % groups.length]._id,
+      groupsIds: [groups[i % groups.length]._id],
     });
     users.push(await db.Users.findOne(user.insertedId));
   }

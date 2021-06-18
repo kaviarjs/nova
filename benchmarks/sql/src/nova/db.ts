@@ -91,7 +91,7 @@ export async function setup() {
       field: "postId",
     },
     user: {
-      collection: () => db.Posts,
+      collection: () => db.Users,
       field: "userId",
     },
   });

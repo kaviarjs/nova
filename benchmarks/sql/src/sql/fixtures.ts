@@ -74,7 +74,7 @@ export async function runFixtures() {
         /* @ts-ignore */
         await comment.setPost(post);
         /* @ts-ignore */
-        await comment.setUser(users[(k % users.length) - 1]);
+        await comment.setUser(users[k % users.length]);
       }
     }
   }

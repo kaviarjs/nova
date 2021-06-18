@@ -1,6 +1,6 @@
 import { v4 as uuid } from "uuid";
-
-const DEFAULT_RUN_TESTS = 10;
+import { sanity } from "./sanity";
+import { DEFAULT_RUN_TESTS } from "./constants";
 
 export function createRandomPost(index) {
   return {
@@ -30,6 +30,8 @@ export interface ITestResults {
   fastest: number;
   slowest: number;
   mean: number;
+  iterations: number;
+  firstRun: number;
 }
 
 export async function testSuite(suites: ITestSuite[]) {
@@ -39,8 +41,9 @@ export async function testSuite(suites: ITestSuite[]) {
       fastest: result.fastest + "ms",
       slowest: result.slowest + "ms",
       mean: result.mean + "ms",
+      firstRun: result.firstRun + "ms",
+      iterations: result.iterations,
     });
-    console.log("----");
   }
   console.log("Done");
 }
@@ -50,25 +53,37 @@ export async function testRunner(
   times = DEFAULT_RUN_TESTS
 ): Promise<ITestResults> {
   let sum = 0;
-  let fastest = 0;
-  let slowest = Infinity;
+  let slowest = 0;
+  let firstRun = 0;
+  let fastest = Infinity;
 
   for (let i = 0; i < times; i++) {
     const now = new Date();
-    await suite.run();
+    const result = await suite.run();
+
     const timeElapsed = new Date().getTime() - now.getTime();
-    if (timeElapsed > fastest) {
-      fastest = timeElapsed;
-    }
-    if (timeElapsed < slowest) {
+    if (timeElapsed > slowest) {
       slowest = timeElapsed;
     }
+    if (timeElapsed < fastest) {
+      fastest = timeElapsed;
+    }
     sum += timeElapsed;
+
+    if (i === 0) {
+      firstRun = timeElapsed;
+    }
+
+    if (i === 0 && sanity[suite.name]) {
+      sanity[suite.name](result);
+    }
   }
 
   return {
     fastest,
     slowest,
     mean: sum / times,
+    iterations: times,
+    firstRun,
   };
 }
