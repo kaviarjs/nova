@@ -2,10 +2,11 @@ import * as db from "./db";
 import { queryBuilder } from "./db";
 import { query } from "@kaviar/nova";
 import { ITestSuite } from "../common";
+import { GROUPS } from "../constants";
 
 export const suites: ITestSuite[] = [
   {
-    name: "Users Query",
+    name: "Full Database Dump - Users",
     async run() {
       const result = await db.User.findAll({
         attributes: ["email"],
@@ -48,30 +49,112 @@ export const suites: ITestSuite[] = [
       });
 
       return result;
+    },
+  },
+  {
+    name: "Full Database Dump - Comments",
+    async run() {
+      const result = await db.Comment.findAll({
+        // text: 1,
+        // user: {
+        //   email: 1,
+        //   groups: {
+        //     name: 1,
+        //   },
+        // },
+        // post: {
+        //   category: {
+        //     name: 1,
+        //   },
+        //   tags: {
+        //     name: 1,
+        //   },
+        //   title: 1,
+        //   user: {
+        //     email: 1,
+        //   },
+        // },
+        attributes: ["text"],
+        include: [
+          {
+            model: db.User,
+            as: "user",
+            attributes: ["email"],
+            include: [
+              {
+                model: db.Group,
+                as: "groups",
+                attributes: ["name"],
+              },
+            ],
+          },
+          {
+            attributes: ["title"],
+            model: db.Post,
+            as: "post",
+            include: [
+              {
+                model: db.Tag,
+                as: "tags",
+                attributes: ["name"],
+              },
+              {
+                model: db.PostCategory,
+                as: "postCategory",
+                attributes: ["name"],
+              },
+              {
+                model: db.User,
+                as: "user",
+                attributes: ["email"],
+              },
+            ],
+          },
+        ],
+      });
 
-      // const result = await queryBuilder
-      //   .join("posts", "posts.userId", "=", "users.id")
-      //   .join("comments", "comments.postId", "=", "posts.userId")
-      //   .join(
-      //     { commentsUsers: "users" },
-      //     "comments.userId",
-      //     "=",
-      //     "commentsUsers.id"
-      //   )
-      //   .select([
-      //     "users.email",
-      //     "posts.title",
-      //     "comments.text",
-      //     "commentsUsers.email as commentUserEmail",
-      //   ])
-      //   .from("users");
-      // const query = queryBuilder.select(["users.email"]).from("users");
+      return result;
+    },
+  },
+  {
+    only: true,
+    name: "Get all posts that belong to users in a specific group",
+    async run() {
+      const result = await db.Post.findAll({
+        attributes: ["title"],
+        where: {},
+        include: [
+          {
+            model: db.Tag,
+            as: "tags",
+            attributes: ["name"],
+          },
+          {
+            model: db.PostCategory,
+            as: "postCategory",
+            attributes: ["name"],
+          },
+          {
+            model: db.User,
+            as: "user",
+            attributes: ["email"],
+            required: true,
+            include: [
+              {
+                model: db.Group,
+                as: "groups",
+                attributes: ["name"],
+                where: {
+                  name: GROUPS[0],
+                },
+                required: true,
+              },
+            ],
+          },
+        ],
+      });
 
-      // const result = await query;
-
-      // console.log(result.length);
-      // console.log(JSON.stringify(result, null, 4));
-      // console.log(query.toSQL());
+      return result;
     },
   },
 ];

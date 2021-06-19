@@ -24,6 +24,7 @@ export function createComment() {
 export interface ITestSuite {
   name: string;
   run: Function;
+  only?: boolean;
 }
 
 export interface ITestResults {
@@ -41,6 +42,11 @@ export async function testSuite(
     times?: number;
   } = {}
 ) {
+  const onlySuites = suites.filter((suite) => suite.only === true);
+  if (onlySuites.length > 0) {
+    suites = onlySuites;
+  }
+
   for (const suite of suites) {
     const result = await testRunner(suite, options);
     console.log(suite.name, {
@@ -51,7 +57,7 @@ export async function testSuite(
       iterations: result.iterations,
     });
   }
-  console.log("Done");
+  console.log("✓ Done");
 }
 
 export async function testRunner(
