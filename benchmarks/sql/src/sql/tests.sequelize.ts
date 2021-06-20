@@ -117,7 +117,6 @@ export const suites: ITestSuite[] = [
     },
   },
   {
-    only: true,
     name: "Get all posts that belong to users in a specific group",
     async run() {
       const result = await db.Post.findAll({
@@ -148,6 +147,42 @@ export const suites: ITestSuite[] = [
                   name: GROUPS[0],
                 },
                 required: true,
+              },
+            ],
+          },
+        ],
+      });
+
+      return result;
+    },
+  },
+  {
+    name: "Get all posts sorted by category name",
+    async run() {
+      const result = await db.Post.findAll({
+        attributes: ["title"],
+        where: {},
+        order: [["postCategory", "name", "ASC"]],
+        include: [
+          {
+            model: db.Tag,
+            as: "tags",
+            attributes: ["name"],
+          },
+          {
+            model: db.PostCategory,
+            as: "postCategory",
+            attributes: ["name"],
+          },
+          {
+            model: db.User,
+            as: "user",
+            attributes: ["email"],
+            include: [
+              {
+                model: db.Group,
+                as: "groups",
+                attributes: ["name"],
               },
             ],
           },

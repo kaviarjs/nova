@@ -58,7 +58,6 @@ export const suites: ITestSuite[] = [
     },
   },
   {
-    only: true,
     name: "Get all posts that belong to users in a specific group",
     async run() {
       const group = await db.Groups.findOne(
@@ -131,8 +130,36 @@ export const suites: ITestSuite[] = [
       return result;
     },
   },
-  // Relational Filtering
-  // posts that belong to users in a specific group
-  // Relational Sorting
-  // posts sorted by category name
+  {
+    name: "Get all posts sorted by category name",
+    async run() {
+      const result = await query(db.Posts, {
+        $: {
+          pipeline: [
+            lookup(db.Posts, "category"),
+            {
+              $sort: {
+                "category.name": 1,
+              },
+            },
+          ],
+        },
+        title: 1,
+        category: {
+          name: 1,
+        },
+        tags: {
+          name: 1,
+        },
+        user: {
+          email: 1,
+          groups: {
+            name: 1,
+          },
+        },
+      }).toArray();
+
+      return result;
+    },
+  },
 ];

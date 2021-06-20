@@ -27,7 +27,8 @@ export interface ITestSuite {
   only?: boolean;
 }
 
-export interface ITestResults {
+export interface ITestResult {
+  name?: string;
   fastest: number;
   slowest: number;
   mean: number;
@@ -66,7 +67,7 @@ export async function testRunner(
     runSanityChecks?: boolean;
     times?: number;
   } = {}
-): Promise<ITestResults> {
+): Promise<ITestResult> {
   options = Object.assign(
     { runSanityChecks: true, times: DEFAULT_RUN_TESTS },
     options
@@ -100,6 +101,7 @@ export async function testRunner(
   }
 
   return {
+    name: suite.name,
     fastest,
     slowest,
     mean: sum / options.times,

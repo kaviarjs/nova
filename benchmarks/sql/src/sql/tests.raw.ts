@@ -89,7 +89,6 @@ export const suites: ITestSuite[] = [
   },
 
   {
-    only: true,
     name: "Get all posts that belong to users in a specific group",
     async run() {
       const result = await queryBuilder
@@ -118,6 +117,41 @@ export const suites: ITestSuite[] = [
           "users.email as postUserEmail",
           "groups.name as userGroupName",
         ])
+        .from("posts");
+
+      return result;
+    },
+  },
+  {
+    name: "Get all posts sorted by category name",
+    async run() {
+      const result = await queryBuilder
+        .join("users", "posts.userId", "=", "users.id")
+        .join(
+          "postCategories",
+          "posts.postCategoryId",
+          "=",
+          "postCategories.id"
+        )
+
+        // join groups
+        .join("UserGroup", "UserGroup.userId", "=", "users.id")
+        .join("groups", "groups.id", "=", "UserGroup.groupId")
+
+        // join with tags
+        .join("PostTag", "PostTag.postId", "=", "posts.id")
+        .join("tags", "tags.id", "=", "PostTag.tagId")
+
+        .where("groups.name", "=", GROUPS[0])
+
+        .select([
+          "posts.title",
+          "postCategories.name as postCategoryName",
+          "tags.name as postTagName",
+          "users.email as postUserEmail",
+          "groups.name as userGroupName",
+        ])
+        .orderBy("postCategories.name")
         .from("posts");
 
       return result;
