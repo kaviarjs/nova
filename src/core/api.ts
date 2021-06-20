@@ -4,7 +4,6 @@ import {
   QueryBodyType,
   IReducerOption,
   IReducerOptions,
-  ICollection,
   IAstToQueryOptions,
   IQueryContext,
 } from "./defs";
@@ -20,9 +19,9 @@ import Linker from "./query/Linker";
 import Query from "./query/Query";
 import astToQuery from "./graphql/astToQuery";
 import { IGetLookupOperatorOptions } from "./query/Linker";
-
+import { Collection } from "mongodb";
 export function query<T>(
-  collection: ICollection,
+  collection: Collection,
   body: QueryBodyType,
   context?: IQueryContext
 ) {
@@ -30,7 +29,7 @@ export function query<T>(
 }
 
 query.graphql = (
-  collection: ICollection,
+  collection: Collection,
   ast: any,
   options: IAstToQueryOptions,
   context?: IQueryContext
@@ -38,13 +37,13 @@ query.graphql = (
   return astToQuery(collection, ast, options, context);
 };
 
-export function clear(collection: ICollection) {
+export function clear(collection: Collection) {
   collection[LINK_STORAGE] = {};
   collection[REDUCER_STORAGE] = {};
   collection[EXPANDER_STORAGE] = {};
 }
 
-export function addLinks(collection: ICollection, data: ILinkOptions) {
+export function addLinks(collection: Collection, data: ILinkOptions) {
   if (!collection[LINK_STORAGE]) {
     collection[LINK_STORAGE] = {};
   }
@@ -67,7 +66,7 @@ export function addLinks(collection: ICollection, data: ILinkOptions) {
   });
 }
 
-export function addExpanders(collection: ICollection, data: IExpanderOptions) {
+export function addExpanders(collection: Collection, data: IExpanderOptions) {
   if (!collection[EXPANDER_STORAGE]) {
     collection[EXPANDER_STORAGE] = {};
   }
@@ -83,7 +82,7 @@ export function addExpanders(collection: ICollection, data: IExpanderOptions) {
   });
 }
 
-export function getLinker(collection: ICollection, name: string): Linker {
+export function getLinker(collection: Collection, name: string): Linker {
   if (collection[LINK_STORAGE] && collection[LINK_STORAGE][name]) {
     return collection[LINK_STORAGE][name];
   } else {
@@ -93,7 +92,7 @@ export function getLinker(collection: ICollection, name: string): Linker {
   }
 }
 
-export function hasLinker(collection: ICollection, name: string): boolean {
+export function hasLinker(collection: Collection, name: string): boolean {
   if (collection[LINK_STORAGE]) {
     return Boolean(collection[LINK_STORAGE][name]);
   } else {
@@ -106,7 +105,7 @@ export function hasLinker(collection: ICollection, name: string): boolean {
  * This is useful for complex searching and filtering
  */
 export function lookup(
-  collection: ICollection,
+  collection: Collection,
   linkName: string,
   options?: IGetLookupOperatorOptions
 ) {
@@ -114,7 +113,7 @@ export function lookup(
 }
 
 export function getReducerConfig(
-  collection: ICollection,
+  collection: Collection,
   name: string
 ): IReducerOption {
   if (collection[REDUCER_STORAGE]) {
@@ -123,7 +122,7 @@ export function getReducerConfig(
 }
 
 export function getExpanderConfig(
-  collection: ICollection,
+  collection: Collection,
   name: string
 ): QueryBodyType {
   if (collection[EXPANDER_STORAGE]) {
@@ -131,7 +130,7 @@ export function getExpanderConfig(
   }
 }
 
-export function addReducers(collection: ICollection, data: IReducerOptions) {
+export function addReducers(collection: Collection, data: IReducerOptions) {
   if (!collection[REDUCER_STORAGE]) {
     collection[REDUCER_STORAGE] = {};
   }

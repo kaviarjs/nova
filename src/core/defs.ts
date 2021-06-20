@@ -1,18 +1,7 @@
-import { FilterQuery } from "mongodb";
+import { Collection, FilterQuery } from "mongodb";
 
 export interface IToArrayable {
   toArray(): Promise<any[]>;
-}
-
-export interface ICollection {
-  aggregate(
-    pipeline: any[],
-    options?: {
-      allowDiskUse: boolean;
-      [key: string]: any;
-    }
-  ): IToArrayable;
-  collectionName: string;
 }
 
 export interface IQueryContext {
@@ -44,7 +33,7 @@ export interface IFindOptions {
 }
 
 export interface ILinkCollectionOptions {
-  collection: () => ICollection;
+  collection: () => Collection;
   field?: string;
   unique?: boolean;
   many?: boolean;
@@ -52,6 +41,7 @@ export interface ILinkCollectionOptions {
    * Applicable only when the link is on the other side
    */
   inversedBy?: string;
+  index?: boolean;
 }
 
 type AnyObject = { [key: string]: any };

@@ -1,6 +1,7 @@
 import * as _ from "lodash";
+import { Collection } from "mongodb";
 import { LINK_STORAGE } from "../constants";
-import { ILinkCollectionOptions, ICollection } from "../defs";
+import { ILinkCollectionOptions } from "../defs";
 
 export enum LinkStrategy {
   ONE,
@@ -8,7 +9,7 @@ export enum LinkStrategy {
 }
 
 export default class Linker {
-  public mainCollection: ICollection;
+  public mainCollection: Collection;
   public linkConfig: ILinkCollectionOptions & {
     strategy: LinkStrategy;
   };
@@ -22,7 +23,7 @@ export default class Linker {
    * @param linkConfig
    */
   constructor(
-    mainCollection: ICollection,
+    mainCollection: Collection,
     linkName: string,
     linkConfig: ILinkCollectionOptions
   ) {
@@ -37,6 +38,12 @@ export default class Linker {
 
     // check linkName must not exist in schema
     this._validateAndClean();
+
+    if (!this.isVirtual() && linkConfig.index === true) {
+      mainCollection.createIndex({
+        [linkConfig.field]: 1,
+      });
+    }
   }
 
   get relatedLinker(): Linker {

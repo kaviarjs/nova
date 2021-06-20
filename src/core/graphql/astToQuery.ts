@@ -4,13 +4,9 @@ import * as graphqlFields from "graphql-fields";
 import { SPECIAL_PARAM_FIELD } from "../constants";
 import Query from "../query/Query";
 import intersectDeep from "./intersectDeep";
-import {
-  ICollection,
-  QueryBodyType,
-  IAstToQueryOptions,
-  IQueryContext,
-} from "../defs";
+import { QueryBodyType, IAstToQueryOptions, IQueryContext } from "../defs";
 import { mergeDeep } from "./mergeDeep";
+import { Collection } from "mongodb";
 
 export const ArgumentStore = Symbol("GraphQLArgumentStore");
 
@@ -53,7 +49,7 @@ function replaceArgumentsWithOurs(body: any) {
 }
 
 export default function astToQuery(
-  collection: ICollection,
+  collection: Collection,
   ast,
   config: IAstToQueryOptions = {},
   context?: IQueryContext

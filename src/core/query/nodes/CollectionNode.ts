@@ -5,7 +5,6 @@ import { SPECIAL_PARAM_FIELD, ALIAS_FIELD } from "../../constants";
 import {
   QueryBodyType,
   IReducerOption,
-  ICollection,
   QuerySubBodyType,
   IQueryContext,
 } from "../../defs";
@@ -20,9 +19,10 @@ import Linker from "../Linker";
 import { INode } from "./INode";
 import FieldNode from "./FieldNode";
 import ReducerNode from "./ReducerNode";
+import { Collection } from "mongodb";
 
-export interface ICollectionNodeOptions {
-  collection: ICollection;
+export interface CollectionNodeOptions {
+  collection: Collection;
   body: QueryBodyType;
   explain?: boolean;
   name?: string;
@@ -40,7 +40,7 @@ export enum NodeLinkType {
 export default class CollectionNode implements INode {
   public body: QuerySubBodyType;
   public name: string;
-  public collection: ICollection;
+  public collection: Collection;
   public parent: CollectionNode;
   public alias: string;
 
@@ -64,7 +64,7 @@ export default class CollectionNode implements INode {
   public results: any = [];
 
   constructor(
-    options: ICollectionNodeOptions,
+    options: CollectionNodeOptions,
     public readonly context: IQueryContext
   ) {
     const { collection, body, name, parent, linker, explain = false } = options;
