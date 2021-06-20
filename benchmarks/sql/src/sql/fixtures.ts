@@ -1,7 +1,7 @@
 import * as db from "./db";
 import * as _ from "lodash";
 import {
-  FORCE_FIXTURES,
+  RUN_FIXTURES,
   TAGS,
   GROUPS,
   POST_CATEGORIES,
@@ -56,6 +56,7 @@ export async function runFixtures() {
 
   for (let i = 0; i < users.length; i++) {
     const user = users[i];
+    console.log("Handling user:", user.id);
     await user.addGroup(groups[i % groups.length]);
 
     for (let j = 0; j < POST_PER_USER; j++) {

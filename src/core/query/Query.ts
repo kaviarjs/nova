@@ -1,10 +1,11 @@
 import * as _ from "lodash";
-import { QueryBodyType, ICollection, IQueryContext } from "../defs";
+import { QueryBodyType, IQueryContext } from "../defs";
 import CollectionNode from "./nodes/CollectionNode";
 import hypernova from "./hypernova/hypernova";
+import { Collection } from "mongodb";
 
 export default class Query {
-  public collection: ICollection;
+  public collection: Collection;
   private graph: CollectionNode;
   public readonly body: any;
   public queryName: string;
@@ -16,7 +17,7 @@ export default class Query {
    * @param body
    */
   constructor(
-    collection: ICollection,
+    collection: Collection,
     body: QueryBodyType,
     context?: IQueryContext
   ) {

@@ -9,7 +9,7 @@ import {
 export const sanity = {
   "Full Database Dump - Users"(result) {
     expect(Array.isArray(result)).toBe(true);
-    expect(result).toHaveLength(10);
+    expect(result).toHaveLength(USERS_COUNT);
 
     for (const user of result) {
       expect(user.posts).toHaveLength(POST_PER_USER);
@@ -25,7 +25,6 @@ export const sanity = {
   },
   "Get all posts that belong to users in a specific group"(result) {
     expect(Array.isArray(result)).toBe(true);
-    expect(result.length > 0).toBe(true);
     for (const post of result) {
       expect(post.user).toBeTruthy();
       expect(typeof post.user.email === "string").toBe(true);

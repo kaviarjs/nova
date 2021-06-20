@@ -17,7 +17,7 @@ export const suites: ITestSuite[] = [
             attributes: ["name"],
           },
           {
-            attributes: ["title"],
+            attributes: ["title", "postCategoryId", "userId"],
             model: db.Post,
             as: "posts",
             include: [
@@ -33,7 +33,7 @@ export const suites: ITestSuite[] = [
               },
               {
                 model: db.Comment,
-                attributes: ["text"],
+                attributes: ["text", "postId", "userId"],
                 as: "comments",
                 include: [
                   {

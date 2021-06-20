@@ -1,6 +1,6 @@
 import { v4 as uuid } from "uuid";
 import { sanity } from "./sanity";
-import { DEFAULT_RUN_TESTS } from "./constants";
+import { TEST_ITERATIONS } from "./constants";
 
 export function createRandomPost(index) {
   return {
@@ -69,7 +69,7 @@ export async function testRunner(
   } = {}
 ): Promise<ITestResult> {
   options = Object.assign(
-    { runSanityChecks: true, times: DEFAULT_RUN_TESTS },
+    { runSanityChecks: true, times: TEST_ITERATIONS },
     options
   );
 

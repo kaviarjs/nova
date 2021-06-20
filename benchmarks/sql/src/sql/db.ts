@@ -1,7 +1,23 @@
 import { Sequelize, DataTypes } from "sequelize";
 import * as knex from "knex";
 
-export const sequelize = new Sequelize("postgres", null, null, {
+// Remote
+const HOSTNAME = "18.156.171.158";
+const PORT = 25001;
+const USER = "postgres";
+const DB = "postgres";
+const PASSWORD = "myPassword";
+
+// Localhost
+// const HOSTNAME = "localhost";
+// const PORT = 5432;
+// const USER = "theodor";
+// const DB = "postgres";
+// const PASSWORD = null;
+
+export const sequelize = new Sequelize(`postgres://${HOSTNAME}:${PORT}/${DB}`, {
+  username: USER,
+  password: PASSWORD,
   dialect: "postgres",
   logging: false,
 });
@@ -9,12 +25,19 @@ export const sequelize = new Sequelize("postgres", null, null, {
 export const queryBuilder = knex({
   client: "pg",
   connection: {
-    host: "127.0.0.1",
-    user: null,
-    password: null,
-    database: "postgres",
+    host: HOSTNAME,
+    port: PORT,
+    user: USER,
+    password: PASSWORD,
+    database: DB,
   },
 });
+
+// const ID_SIGNATURE = {
+//   allowNull: false,
+//   primaryKey: true,
+//   type: DataTypes.UUIDV4,
+// };
 
 export const User = sequelize.define("user", {
   username: {

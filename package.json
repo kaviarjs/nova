@@ -26,6 +26,9 @@
     "graphql-fields": "^2.0.3",
     "lodash": "^4.17.15"
   },
+  "peerDependencies": {
+    "mongodb": "^3.3.3"
+  },
   "devDependencies": {
     "@types/chai": "^4.2.3",
     "@types/chai-as-promised": "^7.1.2",

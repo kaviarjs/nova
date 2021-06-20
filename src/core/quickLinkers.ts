@@ -1,6 +1,6 @@
 import _ from "lodash";
+import { Collection } from "mongodb";
 import { addLinks } from "./api";
-import { ICollection } from "./defs";
 
 export interface IQuickLinkingArguments {
   linkName: string;
@@ -12,8 +12,8 @@ export interface IQuickLinkingArguments {
 }
 
 export function oneToOne(
-  C1: ICollection,
-  C2: ICollection,
+  C1: Collection,
+  C2: Collection,
   options: IQuickLinkingArguments
 ) {
   addLinks(C1, {
@@ -33,8 +33,8 @@ export function oneToOne(
 }
 
 export function manyToOne(
-  C1: ICollection,
-  C2: ICollection,
+  C1: Collection,
+  C2: Collection,
   options: IQuickLinkingArguments
 ) {
   addLinks(C1, {
@@ -53,8 +53,8 @@ export function manyToOne(
 }
 
 export function oneToMany(
-  C1: ICollection,
-  C2: ICollection,
+  C1: Collection,
+  C2: Collection,
   options: IQuickLinkingArguments
 ) {
   addLinks(C1, {
@@ -75,8 +75,8 @@ export function oneToMany(
 }
 
 export function manyToMany(
-  C1: ICollection,
-  C2: ICollection,
+  C1: Collection,
+  C2: Collection,
   options: IQuickLinkingArguments
 ) {
   addLinks(C1, {
