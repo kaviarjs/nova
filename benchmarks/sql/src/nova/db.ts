@@ -2,8 +2,8 @@ import { addLinks } from "@kaviar/nova";
 import { Collection, MongoClient } from "mongodb";
 // Connection URI
 const DB = "nova";
-const MONGO_URI = `mongodb://18.156.171.158:25000/${DB}`;
-// const MONGO_URI = `mongodb://localhost:27017/${DB}`;
+// const MONGO_URI = `mongodb://18.156.171.158:25000/${DB}`;
+const MONGO_URI = `mongodb://localhost:27017/${DB}`;
 
 // Create a new MongoClient
 const client = new MongoClient(MONGO_URI, {

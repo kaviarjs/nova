@@ -4,6 +4,7 @@
 
 - Improvements fixes, over 10x in some cases with large data sets
 - Moved to mongodb Collection, deprecated ICollection interface
+- Added extensive benchmark tests
 
 ## 1.4.0
 
