@@ -23,6 +23,9 @@ export const sanity = {
       }
     }
   },
+  "Posts with tags, comments and users email"(result) {
+    expect(result).toHaveLength(USERS_COUNT * POST_PER_USER);
+  },
   "Get all posts that belong to users in a specific group"(result) {
     expect(Array.isArray(result)).toBe(true);
     for (const post of result) {

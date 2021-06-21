@@ -32,6 +32,33 @@ export const suites: ITestSuite[] = [
     },
   },
   {
+    name: "Users with groups",
+    async run() {
+      return await query(db.Users, {
+        email: 1,
+        groups: {
+          name: 1,
+        },
+      }).toArray();
+    },
+  },
+  {
+    name: "Posts with tags, comments and users email",
+    async run() {
+      return await query(db.Posts, {
+        title: 1,
+        tags: {
+          name: 1,
+        },
+        comments: {
+          user: {
+            email: 1,
+          },
+        },
+      }).toArray();
+    },
+  },
+  {
     name: "Full Database Dump - Comments",
     async run() {
       return await query(db.Comments, {

@@ -54,6 +54,43 @@ export const suites: ITestSuite[] = [
     },
   },
   {
+    name: "Users with groups",
+    async run() {
+      const result = await queryBuilder
+        // join groups
+        .join("UserGroup", "UserGroup.userId", "=", "users.id")
+        .join("groups", "groups.id", "=", "UserGroup.groupId")
+
+        .select(["users.email", "groups.name"])
+        .from("users");
+
+      // // const query = queryBuilder.select(["users.email"]).from("users");
+
+      return result;
+    },
+  },
+  {
+    name: "Posts with tags, comments and comment users email",
+    async run() {
+      const result = await queryBuilder
+        .join("comments", "comments.postId", "=", "posts.id")
+        .join("users", "comments.userId", "=", "users.id")
+
+        // join with tags
+        .join("PostTag", "PostTag.postId", "=", "posts.id")
+        .join("tags", "tags.id", "=", "PostTag.tagId")
+
+        .select([
+          "posts.title",
+          "tags.name as postTagName",
+          "users.email as commentUserEmail",
+        ])
+        .from("posts");
+
+      return result;
+    },
+  },
+  {
     name: "Full Database Dump - Comments",
     async run() {
       const result = await queryBuilder

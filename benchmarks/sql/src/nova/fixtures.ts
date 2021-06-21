@@ -12,9 +12,11 @@ import { db } from "./db";
 import { createRandomUser, createRandomPost } from "../common";
 import { Collection } from "mongodb";
 
-export async function getNextId(collection: Collection): Promise<number> {
+export async function getNextId(
+  collection: Collection
+): Promise<{ [key: string]: any }> {
   const result = (await collection.find().count()) + 1;
-  return result;
+  return { _id: result };
 }
 
 export async function runFixtures() {
@@ -28,7 +30,7 @@ export async function runFixtures() {
   const tags = [];
   for (const name of TAGS) {
     const result = await db.Tags.insertOne({
-      _id: await getNextId(db.Tags),
+      ...(await getNextId(db.Tags)),
       name,
     });
     tags.push(await db.Tags.findOne({ _id: result.insertedId }));
@@ -37,7 +39,7 @@ export async function runFixtures() {
   const groups = [];
   for (const name of GROUPS) {
     const result = await db.Groups.insertOne({
-      _id: await getNextId(db.Groups),
+      ...(await getNextId(db.Groups)),
       name,
     });
     groups.push(await db.Groups.findOne({ _id: result.insertedId }));
@@ -46,7 +48,7 @@ export async function runFixtures() {
   const categories = [];
   for (const name of POST_CATEGORIES) {
     const result = await db.PostsCategories.insertOne({
-      _id: await getNextId(db.PostsCategories),
+      ...(await getNextId(db.PostsCategories)),
       name,
     });
     categories.push(
@@ -59,7 +61,7 @@ export async function runFixtures() {
     const user = await db.Users.insertOne({
       ...createRandomUser(),
       groupsIds: [groups[i % groups.length]._id],
-      _id: await getNextId(db.Users),
+      ...(await getNextId(db.Users)),
     });
     users.push(await db.Users.findOne({ _id: user.insertedId }));
   }
@@ -75,7 +77,7 @@ export async function runFixtures() {
         userId: user._id,
         categoryId: categories[postIndex % categories.length]._id,
         tagsIds: [tags[postIndex % tags.length]._id],
-        _id: await getNextId(db.Posts),
+        ...(await getNextId(db.Posts)),
       });
 
       // CREATE COMMENTS FOR EACH POST
@@ -85,7 +87,7 @@ export async function runFixtures() {
         commentIndex++
       ) {
         await db.Comments.insertOne({
-          _id: await getNextId(db.Comments),
+          ...(await getNextId(db.Comments)),
           postId: result.insertedId,
           userId: users[commentIndex % users.length]._id,
           text: "Hello Hello Hello Hello Hello",

@@ -52,28 +52,56 @@ export const suites: ITestSuite[] = [
     },
   },
   {
+    name: "Users with groups",
+    async run() {
+      const result = await db.User.findAll({
+        attributes: ["email"],
+        include: [
+          {
+            model: db.Group,
+            as: "groups",
+            attributes: ["name"],
+          },
+        ],
+      });
+
+      return result;
+    },
+  },
+  {
+    name: "Posts with tags, comments and comment users email",
+    async run() {
+      const result = await db.Post.findAll({
+        attributes: ["title"],
+        where: {},
+        include: [
+          {
+            model: db.Tag,
+            as: "tags",
+            attributes: ["name"],
+          },
+          {
+            model: db.Comment,
+            as: "comments",
+            attributes: ["text"],
+            include: [
+              {
+                model: db.User,
+                as: "user",
+                attributes: ["email"],
+              },
+            ],
+          },
+        ],
+      });
+
+      return result;
+    },
+  },
+  {
     name: "Full Database Dump - Comments",
     async run() {
       const result = await db.Comment.findAll({
-        // text: 1,
-        // user: {
-        //   email: 1,
-        //   groups: {
-        //     name: 1,
-        //   },
-        // },
-        // post: {
-        //   category: {
-        //     name: 1,
-        //   },
-        //   tags: {
-        //     name: 1,
-        //   },
-        //   title: 1,
-        //   user: {
-        //     email: 1,
-        //   },
-        // },
         attributes: ["text"],
         include: [
           {
