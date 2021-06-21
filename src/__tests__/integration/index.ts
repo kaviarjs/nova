@@ -1139,7 +1139,7 @@ describe("Main tests", function () {
   });
 
   it("Should work with geonear points", async () => {
-    GeoPoint.createIndex({
+    await GeoPoint.createIndex({
       loc: "2dsphere",
     });
     GeoPoint.insertOne({
