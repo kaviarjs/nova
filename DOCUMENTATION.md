@@ -8,8 +8,8 @@ The incredible speed boost is possible thanks to the technology called Hypernova
 
 - It makes it a joy to use MongoDB as a relational database
 - Support for relational filtering & sorting
-- Speeds surpassing SQL in various scenarios
-- Lower bandwidth used than SQL for joined documents
+- [Speeds surpassing SQL in various scenarios](https://docs.google.com/spreadsheets/d/1cA2c6e9YvE-fA8LEaDwukgrvYNOIo8RmNjy8cPWby1g/edit#gid=0)
+- [Lower bandwidth used than SQL for joined documents](https://docs.google.com/spreadsheets/d/1cA2c6e9YvE-fA8LEaDwukgrvYNOIo8RmNjy8cPWby1g/edit#gid=0)
 - Works with the default MongoDB Node Drivers
 - Super light-weight integration for GraphQL
 

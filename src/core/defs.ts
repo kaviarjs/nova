@@ -32,6 +32,15 @@ export interface IFindOptions {
   [key: string]: any;
 }
 
+/**
+ * We are now using the MongoCollection as our reference.
+ * @deprecated
+ */
+export interface ICollection {
+  aggregate: any;
+  collectionName: any;
+}
+
 export interface ILinkCollectionOptions {
   collection: () => Collection;
   field?: string;

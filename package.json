@@ -1,6 +1,6 @@
 {
   "name": "@kaviar/nova",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "description": "Nova is a relational query layer over MongoDB Node Drivers",
   "main": "dist/index.js",
   "repository": {
@@ -35,7 +35,7 @@
     "@types/graphql": "^0.11.3",
     "@types/jest": "^25.2.3",
     "@types/lodash": "^4.14.144",
-    "@types/mongodb": "^3.3.11",
+    "@types/mongodb": "^3.6.18",
     "@types/node": "^8.0.28",
     "@typescript-eslint/eslint-plugin": "2.3.0",
     "@typescript-eslint/parser": "2.3.0",

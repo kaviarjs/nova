@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.5.0
+
+- Improvements fixes, over 10x in some cases with large data sets
+- Moved to mongodb Collection, deprecated ICollection interface
+
 ## 1.4.0
 
 - Added context into query, allowing reducers to have a context
