@@ -147,4 +147,7 @@ It's clear the winner is `RAW SQL` but the results we receive need to be formatt
 
 So, if we compare it with Sequelize, a real-world sample of ORM we have the following improvements: 2.65x, 3.81x, 1.29x, 0.5x
 
-But in reality you don't store your db on localhost, you store it on a server which can be in local network or further away, Nova thrives in these conditions.
+`Local Network` results can be found here:
+https://docs.google.com/spreadsheets/d/1cA2c6e9YvE-fA8LEaDwukgrvYNOIo8RmNjy8cPWby1g/edit#gid=0
+
+Tested with AWS in `eu-central-1` region.
