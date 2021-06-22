@@ -77,7 +77,6 @@ export const suites: ITestSuite[] = [
   },
   {
     name: "Posts with tags, comments and comment users email",
-    only: true,
     async run() {
       const result = queryBuilder
         .join("comments", "comments.postId", "=", "posts.id")
