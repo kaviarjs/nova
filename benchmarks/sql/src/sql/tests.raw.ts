@@ -33,24 +33,24 @@ export const suites: ITestSuite[] = [
           "commentsUsers.id"
         )
         .select([
+          "users.id as userId",
           "users.email",
+          "posts.id as postId",
           "posts.title",
+          "postCategories.id as postCategoryId",
           "postCategories.name as postCategoryName",
           "tags.name as postTagName",
+          "tags.id as tagId",
           "groups.name as userGroupName",
+          "groups.id as groupId",
           "comments.text",
+          "comments.id as commentId",
           "commentsUsers.email as commentUserEmail",
+          "commentsUsers.id as commentUserId",
         ])
         .from("users");
 
-      // // const query = queryBuilder.select(["users.email"]).from("users");
-
       return result;
-      // JSON.stringify(result, null, 4);
-
-      // console.log(result.length);
-      // console.log(JSON.stringify(result, null, 4));
-      // console.log(query.toSQL());
     },
   },
   {
@@ -58,10 +58,16 @@ export const suites: ITestSuite[] = [
     async run() {
       const result = await queryBuilder
         // join groups
+
         .join("UserGroup", "UserGroup.userId", "=", "users.id")
         .join("groups", "groups.id", "=", "UserGroup.groupId")
 
-        .select(["users.email", "groups.name"])
+        .select([
+          "users.email",
+          "users.id",
+          "groups.name",
+          "groups.id as groupId",
+        ])
         .from("users");
 
       // // const query = queryBuilder.select(["users.email"]).from("users");
@@ -71,8 +77,9 @@ export const suites: ITestSuite[] = [
   },
   {
     name: "Posts with tags, comments and comment users email",
+    only: true,
     async run() {
-      const result = await queryBuilder
+      const result = queryBuilder
         .join("comments", "comments.postId", "=", "posts.id")
         .join("users", "comments.userId", "=", "users.id")
 
@@ -81,13 +88,17 @@ export const suites: ITestSuite[] = [
         .join("tags", "tags.id", "=", "PostTag.tagId")
 
         .select([
+          "posts.id as postId",
           "posts.title",
+          "tags.id as tagId",
           "tags.name as postTagName",
+          "comments.id as commentId",
           "users.email as commentUserEmail",
+          "users.id as commentUserId",
         ])
         .from("posts");
 
-      return result;
+      return await result;
     },
   },
   {
@@ -112,12 +123,18 @@ export const suites: ITestSuite[] = [
         .join("tags", "tags.id", "=", "PostTag.tagId")
 
         .select([
+          "posts.id as postId",
+          "comments.id as commentId",
+          "postCategories.id as postCategories.id",
           "comments.text",
           "posts.title",
           "postCategories.name as postCategoryName",
+          "tags.id as postTagId",
           "tags.name as postTagName",
+          "groups.id as userGroupId",
           "groups.name as userGroupName",
           "users.email as commentUserEmail",
+          "users.id as commentUserId",
         ])
         .from("comments");
 
@@ -148,6 +165,11 @@ export const suites: ITestSuite[] = [
         .where("groups.name", "=", GROUPS[0])
 
         .select([
+          "posts.id as postId",
+          "postCategories.id as postCategoryId",
+          "tags.id as tagId",
+          "users.id as postUserId",
+          "groups.id as userGroupId",
           "posts.title",
           "postCategories.name as postCategoryName",
           "tags.name as postTagName",
@@ -182,6 +204,9 @@ export const suites: ITestSuite[] = [
         .where("groups.name", "=", GROUPS[0])
 
         .select([
+          "posts.id as postId",
+          "tags.id as tagId",
+          "groups.id as userGroupId",
           "posts.title",
           "postCategories.name as postCategoryName",
           "tags.name as postTagName",
