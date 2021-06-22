@@ -9,19 +9,25 @@ export const suites: ITestSuite[] = [
     name: "Full Database Dump - Users",
     async run() {
       return await query(db.Users, {
+        _id: 1,
         email: 1,
         groups: {
+          _id: 1,
           name: 1,
         },
         posts: {
+          _id: 1,
           category: {
+            _id: 1,
             name: 1,
           },
           tags: {
+            _id: 1,
             name: 1,
           },
           title: 1,
           comments: {
+            _id: 1,
             text: 1,
             user: {
               email: 1,
@@ -35,6 +41,7 @@ export const suites: ITestSuite[] = [
     name: "Users with groups",
     async run() {
       return await query(db.Users, {
+        _id: 1,
         email: 1,
         groups: {
           name: 1,
@@ -46,12 +53,16 @@ export const suites: ITestSuite[] = [
     name: "Posts with tags, comments and users email",
     async run() {
       return await query(db.Posts, {
+        _id: 1,
         title: 1,
         tags: {
+          _id: 1,
           name: 1,
         },
         comments: {
+          _id: 1,
           user: {
+            _id: 1,
             email: 1,
           },
         },
@@ -64,20 +75,26 @@ export const suites: ITestSuite[] = [
       return await query(db.Comments, {
         text: 1,
         user: {
+          _id: 1,
           email: 1,
           groups: {
+            _id: 1,
             name: 1,
           },
         },
         post: {
+          _id: 1,
           category: {
+            _id: 1,
             name: 1,
           },
           tags: {
+            _id: 1,
             name: 1,
           },
           title: 1,
           user: {
+            _id: 1,
             email: 1,
           },
         },
@@ -139,16 +156,21 @@ export const suites: ITestSuite[] = [
           //   },
           // ],
         },
+        _id: 1,
         title: 1,
         category: {
+          _id: 1,
           name: 1,
         },
         tags: {
+          _id: 1,
           name: 1,
         },
         user: {
+          _id: 1,
           email: 1,
           groups: {
+            _id: 1,
             name: 1,
           },
         },
@@ -171,16 +193,22 @@ export const suites: ITestSuite[] = [
             },
           ],
         },
+
+        _id: 1,
         title: 1,
         category: {
           name: 1,
+          _id: 1,
         },
         tags: {
           name: 1,
+          _id: 1,
         },
         user: {
           email: 1,
+          _id: 1,
           groups: {
+            _id: 1,
             name: 1,
           },
         },

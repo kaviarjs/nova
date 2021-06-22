@@ -9,35 +9,35 @@ export const suites: ITestSuite[] = [
     name: "Full Database Dump - Users",
     async run() {
       const result = await db.User.findAll({
-        attributes: ["email"],
+        attributes: ["email", "id"],
         include: [
           {
             model: db.Group,
             as: "groups",
-            attributes: ["name"],
+            attributes: ["name", "id"],
           },
           {
-            attributes: ["title", "postCategoryId", "userId"],
+            attributes: ["title", "postCategoryId", "userId", "id"],
             model: db.Post,
             as: "posts",
             include: [
               {
                 model: db.Tag,
                 as: "tags",
-                attributes: ["name"],
+                attributes: ["name", "id"],
               },
               {
                 model: db.PostCategory,
                 as: "postCategory",
-                attributes: ["name"],
+                attributes: ["name", "id"],
               },
               {
                 model: db.Comment,
-                attributes: ["text", "postId", "userId"],
+                attributes: ["text", "postId", "userId", "id"],
                 as: "comments",
                 include: [
                   {
-                    attributes: ["email"],
+                    attributes: ["email", "id"],
                     model: db.User,
                     as: "user",
                   },
@@ -55,12 +55,12 @@ export const suites: ITestSuite[] = [
     name: "Users with groups",
     async run() {
       const result = await db.User.findAll({
-        attributes: ["email"],
+        attributes: ["email", "id"],
         include: [
           {
             model: db.Group,
             as: "groups",
-            attributes: ["name"],
+            attributes: ["name", "id"],
           },
         ],
       });
@@ -72,23 +72,23 @@ export const suites: ITestSuite[] = [
     name: "Posts with tags, comments and comment users email",
     async run() {
       const result = await db.Post.findAll({
-        attributes: ["title"],
+        attributes: ["title", "id"],
         where: {},
         include: [
           {
             model: db.Tag,
             as: "tags",
-            attributes: ["name"],
+            attributes: ["name", "id"],
           },
           {
             model: db.Comment,
             as: "comments",
-            attributes: ["text"],
+            attributes: ["text", "id"],
             include: [
               {
                 model: db.User,
                 as: "user",
-                attributes: ["email"],
+                attributes: ["email", "id"],
               },
             ],
           },
@@ -102,39 +102,39 @@ export const suites: ITestSuite[] = [
     name: "Full Database Dump - Comments",
     async run() {
       const result = await db.Comment.findAll({
-        attributes: ["text"],
+        attributes: ["text", "id"],
         include: [
           {
             model: db.User,
             as: "user",
-            attributes: ["email"],
+            attributes: ["email", "id"],
             include: [
               {
                 model: db.Group,
                 as: "groups",
-                attributes: ["name"],
+                attributes: ["name", "id"],
               },
             ],
           },
           {
-            attributes: ["title"],
+            attributes: ["title", "id"],
             model: db.Post,
             as: "post",
             include: [
               {
                 model: db.Tag,
                 as: "tags",
-                attributes: ["name"],
+                attributes: ["name", "id"],
               },
               {
                 model: db.PostCategory,
                 as: "postCategory",
-                attributes: ["name"],
+                attributes: ["name", "id"],
               },
               {
                 model: db.User,
                 as: "user",
-                attributes: ["email"],
+                attributes: ["email", "id"],
               },
             ],
           },
