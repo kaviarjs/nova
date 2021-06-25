@@ -25,6 +25,7 @@ export interface ITestSuite {
   name: string;
   run: Function;
   only?: boolean;
+  skip?: boolean;
 }
 
 export interface ITestResult {
@@ -47,6 +48,7 @@ export async function testSuite(
   if (onlySuites.length > 0) {
     suites = onlySuites;
   }
+  suites = suites.filter((suite) => suite.skip !== true);
 
   for (const suite of suites) {
     const result = await testRunner(suite, options);

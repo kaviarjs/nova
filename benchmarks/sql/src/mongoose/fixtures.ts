@@ -21,8 +21,8 @@ export async function getNextId(
 
 export async function runFixtures() {
   for (const collKey in db) {
-    console.log(`Deleting all documents from: "${collKey}"`);
     await db[collKey].deleteMany({});
+    console.log(`Deleted all documents from: "${collKey}"`);
   }
 
   console.log("[ok] now started to load fixtures, patience padawan!");
@@ -60,7 +60,7 @@ export async function runFixtures() {
   for (let i = 0; i < USERS_COUNT; i++) {
     const user = await db.Users.insertOne({
       ...createRandomUser(),
-      groupsIds: [groups[i % groups.length]._id],
+      groups: [groups[i % groups.length]._id],
       ...(await getNextId(db.Users)),
     });
     users.push(await db.Users.findOne({ _id: user.insertedId }));
@@ -74,9 +74,9 @@ export async function runFixtures() {
       const post = createRandomPost(postIndex);
       const result = await db.Posts.insertOne({
         ...post,
-        userId: user._id,
-        categoryId: categories[postIndex % categories.length]._id,
-        tagsIds: [tags[postIndex % tags.length]._id],
+        user: user._id,
+        category: categories[postIndex % categories.length]._id,
+        tags: [tags[postIndex % tags.length]._id],
         ...(await getNextId(db.Posts)),
       });
 
@@ -88,8 +88,8 @@ export async function runFixtures() {
       ) {
         await db.Comments.insertOne({
           ...(await getNextId(db.Comments)),
-          postId: result.insertedId,
-          userId: users[commentIndex % users.length]._id,
+          post: result.insertedId,
+          user: users[commentIndex % users.length]._id,
           text: "Hello Hello Hello Hello Hello",
         });
       }

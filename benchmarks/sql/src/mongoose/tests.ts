@@ -1,4 +1,4 @@
-import { db } from "./db";
+import { db, mongooseModels } from "./db";
 import { query, lookup } from "@kaviar/nova";
 import * as Benchmark from "benchmark";
 import { ITestSuite } from "../common";
@@ -8,102 +8,111 @@ export const suites: ITestSuite[] = [
   {
     name: "Full Database Dump - Users",
     async run() {
-      return await query(db.Users, {
-        _id: 1,
-        email: 1,
-        groups: {
-          _id: 1,
-          name: 1,
-        },
-        posts: {
-          _id: 1,
-          category: {
-            _id: 1,
-            name: 1,
-          },
-          tags: {
-            _id: 1,
-            name: 1,
-          },
-          title: 1,
-          comments: {
-            _id: 1,
-            text: 1,
-            user: {
-              email: 1,
+      const results = await mongooseModels.User.find({}, "email")
+        .populate({
+          path: "groups",
+          select: "name",
+        })
+        .populate({
+          path: "posts",
+          select: "title",
+          populate: [
+            {
+              path: "category",
+              select: "name",
             },
-          },
-        },
-      }).toArray();
+            {
+              path: "tags",
+              select: "name",
+            },
+            {
+              path: "comments",
+              select: "text",
+              populate: {
+                path: "user",
+                select: "email",
+              },
+            },
+          ],
+        })
+        .exec();
+
+      return results;
     },
   },
   {
     name: "Users with groups",
     async run() {
-      return await query(db.Users, {
-        _id: 1,
-        email: 1,
-        groups: {
-          name: 1,
-        },
-      }).toArray();
+      const results = await mongooseModels.User.find({}, "email")
+        .populate({
+          path: "groups",
+          select: "name",
+        })
+        .exec();
+
+      return results;
     },
   },
   {
     name: "Posts with tags, comments and users email",
     async run() {
-      return await query(db.Posts, {
-        _id: 1,
-        title: 1,
-        tags: {
-          _id: 1,
-          name: 1,
-        },
-        comments: {
-          _id: 1,
-          text: 1,
-          user: {
-            _id: 1,
-            email: 1,
+      const results = await mongooseModels.Post.find({}, "title")
+        .populate({
+          path: "tags",
+          select: "name",
+        })
+        .populate({
+          path: "comments",
+          select: "text",
+          populate: {
+            path: "user",
+            select: "email",
           },
-        },
-      }).toArray();
+        })
+        .exec();
+
+      return results;
     },
   },
   {
     name: "Full Database Dump - Comments",
     async run() {
-      return await query(db.Comments, {
-        text: 1,
-        user: {
-          _id: 1,
-          email: 1,
-          groups: {
-            _id: 1,
-            name: 1,
+      const results = await mongooseModels.Comment.find({}, "text")
+        .populate({
+          path: "user",
+          select: "email",
+          populate: {
+            path: "groups",
+            select: "name",
           },
-        },
-        post: {
-          _id: 1,
-          category: {
-            _id: 1,
-            name: 1,
-          },
-          tags: {
-            _id: 1,
-            name: 1,
-          },
-          title: 1,
-          user: {
-            _id: 1,
-            email: 1,
-          },
-        },
-      }).toArray();
+        })
+        .populate({
+          path: "post",
+          select: "title",
+          populate: [
+            {
+              path: "category",
+              select: "name",
+            },
+            {
+              path: "tags",
+              select: "name",
+            },
+            {
+              path: "user",
+              select: "email",
+            },
+          ],
+        })
+        .exec();
+
+      return results;
     },
   },
   {
     name: "Get all posts that belong to users in a specific group",
+    // Don't know how to do it
+    skip: true,
     async run() {
       const group = await db.Groups.findOne(
         { name: GROUPS[0] },
@@ -182,6 +191,7 @@ export const suites: ITestSuite[] = [
   },
   {
     name: "Get all posts sorted by category name",
+    skip: true, // how do this in mongoose?
     async run() {
       const result = await query(db.Posts, {
         $: {
