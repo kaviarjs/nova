@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.6.0
+
+- Hardwired filters, allowing links to be configured with "always on" filters
+
 ## 1.5.0
 
 - Improvements fixes, over 10x in some cases with large data sets
