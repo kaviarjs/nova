@@ -8,14 +8,14 @@ export const suites: ITestSuite[] = [
   {
     name: "Full Database Dump - Users",
     async run() {
-      const results = await mongooseModels.User.find({}, "email")
+      const results = await mongooseModels.User.find({}, "email name")
         .populate({
           path: "groups",
           select: "name",
         })
         .populate({
           path: "posts",
-          select: "title",
+          select: "title description",
           populate: [
             {
               path: "category",
@@ -30,7 +30,7 @@ export const suites: ITestSuite[] = [
               select: "text",
               populate: {
                 path: "user",
-                select: "email",
+                select: "email name",
               },
             },
           ],
@@ -43,7 +43,7 @@ export const suites: ITestSuite[] = [
   {
     name: "Users with groups",
     async run() {
-      const results = await mongooseModels.User.find({}, "email")
+      const results = await mongooseModels.User.find({}, "email name")
         .populate({
           path: "groups",
           select: "name",
@@ -56,7 +56,7 @@ export const suites: ITestSuite[] = [
   {
     name: "Posts with tags, comments and users email",
     async run() {
-      const results = await mongooseModels.Post.find({}, "title")
+      const results = await mongooseModels.Post.find({}, "title description")
         .populate({
           path: "tags",
           select: "name",
@@ -66,7 +66,7 @@ export const suites: ITestSuite[] = [
           select: "text",
           populate: {
             path: "user",
-            select: "email",
+            select: "email name",
           },
         })
         .exec();
@@ -88,7 +88,7 @@ export const suites: ITestSuite[] = [
         })
         .populate({
           path: "post",
-          select: "title",
+          select: "title description",
           populate: [
             {
               path: "category",
@@ -100,7 +100,7 @@ export const suites: ITestSuite[] = [
             },
             {
               path: "user",
-              select: "email",
+              select: "email name",
             },
           ],
         })
@@ -111,7 +111,7 @@ export const suites: ITestSuite[] = [
   },
   {
     name: "Get all posts that belong to users in a specific group",
-    // Don't know how to do it
+    // Don't know how to do it with mongoose
     skip: true,
     async run() {
       const group = await db.Groups.findOne(

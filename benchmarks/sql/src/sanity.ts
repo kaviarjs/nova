@@ -1,4 +1,5 @@
 import * as expect from "expect";
+import { COMMENT_TEXT } from "./constants";
 import {
   POST_PER_USER,
   COMMENTS_PER_POST,
@@ -16,8 +17,10 @@ export const sanity = {
       expect(user.groups).toHaveLength(1);
       expect(typeof user.groups[0].name).toBe("string");
       for (const post of user.posts) {
+        expect(post.description).toBeTruthy();
         expect(post.comments).toHaveLength(COMMENTS_PER_POST);
         for (const comment of post.comments) {
+          expect(comment.text).toBe(COMMENT_TEXT);
           expect(typeof comment.user.email).toBe("string");
         }
       }

@@ -1,13 +1,11 @@
 import * as db from "./db";
 import * as _ from "lodash";
 import {
-  RUN_FIXTURES,
   TAGS,
   GROUPS,
   POST_CATEGORIES,
   POST_PER_USER,
   COMMENTS_PER_POST,
-  COMMENT_TEXT_SAMPLES,
   USERS_COUNT,
 } from "../constants";
 import { createRandomUser, createRandomPost, createComment } from "../common";

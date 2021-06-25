@@ -35,8 +35,10 @@ export const suites: ITestSuite[] = [
         .select([
           "users.id as userId",
           "users.email",
+          "users.name",
           "posts.id as postId",
           "posts.title",
+          "posts.description",
           "postCategories.id as postCategoryId",
           "postCategories.name as postCategoryName",
           "tags.name as postTagName",
@@ -63,6 +65,7 @@ export const suites: ITestSuite[] = [
         .join("groups", "groups.id", "=", "UserGroup.groupId")
 
         .select([
+          "users.name",
           "users.email",
           "users.id",
           "groups.name",
@@ -89,6 +92,7 @@ export const suites: ITestSuite[] = [
         .select([
           "posts.id as postId",
           "posts.title",
+          "posts.description",
           "tags.id as tagId",
           "tags.name as postTagName",
           "comments.id as commentId",
@@ -127,12 +131,14 @@ export const suites: ITestSuite[] = [
           "postCategories.id as postCategories.id",
           "comments.text",
           "posts.title",
+          "posts.description",
           "postCategories.name as postCategoryName",
           "tags.id as postTagId",
           "tags.name as postTagName",
           "groups.id as userGroupId",
           "groups.name as userGroupName",
           "users.email as commentUserEmail",
+          "users.name as commentUserName",
           "users.id as commentUserId",
         ])
         .from("comments");
@@ -170,9 +176,11 @@ export const suites: ITestSuite[] = [
           "users.id as postUserId",
           "groups.id as userGroupId",
           "posts.title",
+          "posts.description",
           "postCategories.name as postCategoryName",
           "tags.name as postTagName",
           "users.email as postUserEmail",
+          "users.name as postUserName",
           "groups.name as userGroupName",
         ])
         .from("posts");
@@ -207,9 +215,11 @@ export const suites: ITestSuite[] = [
           "tags.id as tagId",
           "groups.id as userGroupId",
           "posts.title",
+          "posts.description",
           "postCategories.name as postCategoryName",
           "tags.name as postTagName",
           "users.email as postUserEmail",
+          "users.name as postUserName",
           "groups.name as userGroupName",
         ])
         .orderBy("postCategories.name")

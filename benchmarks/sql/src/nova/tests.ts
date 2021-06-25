@@ -11,12 +11,15 @@ export const suites: ITestSuite[] = [
       return await query(db.Users, {
         _id: 1,
         email: 1,
+        name: 1,
         groups: {
           _id: 1,
           name: 1,
         },
         posts: {
           _id: 1,
+          title: 1,
+          description: 1,
           category: {
             _id: 1,
             name: 1,
@@ -25,7 +28,6 @@ export const suites: ITestSuite[] = [
             _id: 1,
             name: 1,
           },
-          title: 1,
           comments: {
             _id: 1,
             text: 1,
@@ -42,6 +44,7 @@ export const suites: ITestSuite[] = [
     async run() {
       return await query(db.Users, {
         _id: 1,
+        name: 1,
         email: 1,
         groups: {
           name: 1,
@@ -55,6 +58,7 @@ export const suites: ITestSuite[] = [
       return await query(db.Posts, {
         _id: 1,
         title: 1,
+        description: 1,
         tags: {
           _id: 1,
           name: 1,
@@ -64,6 +68,7 @@ export const suites: ITestSuite[] = [
           text: 1,
           user: {
             _id: 1,
+            name: 1,
             email: 1,
           },
         },
@@ -85,6 +90,8 @@ export const suites: ITestSuite[] = [
         },
         post: {
           _id: 1,
+          title: 1,
+          description: 1,
           category: {
             _id: 1,
             name: 1,
@@ -93,7 +100,6 @@ export const suites: ITestSuite[] = [
             _id: 1,
             name: 1,
           },
-          title: 1,
           user: {
             _id: 1,
             email: 1,
@@ -159,6 +165,7 @@ export const suites: ITestSuite[] = [
         },
         _id: 1,
         title: 1,
+        description: 1,
         category: {
           _id: 1,
           name: 1,
@@ -170,6 +177,7 @@ export const suites: ITestSuite[] = [
         user: {
           _id: 1,
           email: 1,
+          name: 1,
           groups: {
             _id: 1,
             name: 1,
@@ -197,6 +205,7 @@ export const suites: ITestSuite[] = [
 
         _id: 1,
         title: 1,
+        description: 1,
         category: {
           name: 1,
           _id: 1,
@@ -207,6 +216,7 @@ export const suites: ITestSuite[] = [
         },
         user: {
           email: 1,
+          name: 1,
           _id: 1,
           groups: {
             _id: 1,

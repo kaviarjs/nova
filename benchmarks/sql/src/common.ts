@@ -1,15 +1,17 @@
 import { v4 as uuid } from "uuid";
 import { sanity } from "./sanity";
-import { TEST_ITERATIONS } from "./constants";
+import { COMMENT_TEXT, TEST_ITERATIONS, POST_DESCRIPTION } from "./constants";
 
 export function createRandomPost(index) {
   return {
     title: `Post - ${index}`,
+    description: POST_DESCRIPTION,
   };
 }
 
 export function createRandomUser() {
   return {
+    name: `John Smith ${uuid()}`,
     email: `user-${uuid()}@app.com`,
     password: `12345`,
   };
@@ -17,7 +19,7 @@ export function createRandomUser() {
 
 export function createComment() {
   return {
-    text: "Hello Hello Hello Hello Hello",
+    text: COMMENT_TEXT,
   };
 }
 

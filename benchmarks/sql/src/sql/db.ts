@@ -40,11 +40,11 @@ export const queryBuilder = knex({
 // };
 
 export const User = sequelize.define("user", {
-  username: {
-    type: DataTypes.STRING,
+  name: {
+    type: DataTypes.TEXT,
   },
   email: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
   },
   roles: {
     type: DataTypes.STRING,
@@ -60,7 +60,8 @@ export const PostCategory = sequelize.define("postCategory", {
 });
 
 export const Post = sequelize.define("post", {
-  title: DataTypes.STRING,
+  title: DataTypes.TEXT,
+  description: DataTypes.TEXT,
 });
 
 export const Group = sequelize.define("group", {
@@ -68,7 +69,7 @@ export const Group = sequelize.define("group", {
 });
 
 export const Comment = sequelize.define("comment", {
-  text: DataTypes.STRING,
+  text: DataTypes.TEXT,
 });
 
 // Define relationships

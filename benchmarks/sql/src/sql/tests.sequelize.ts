@@ -17,7 +17,7 @@ export const suites: ITestSuite[] = [
             attributes: ["name", "id"],
           },
           {
-            attributes: ["title", "postCategoryId", "userId", "id"],
+            attributes: ["title", "description", "id"],
             model: db.Post,
             as: "posts",
             include: [
@@ -33,11 +33,11 @@ export const suites: ITestSuite[] = [
               },
               {
                 model: db.Comment,
-                attributes: ["text", "postId", "userId", "id"],
+                attributes: ["text", "id"],
                 as: "comments",
                 include: [
                   {
-                    attributes: ["email", "id"],
+                    attributes: ["email", "name", "id"],
                     model: db.User,
                     as: "user",
                   },
@@ -55,7 +55,7 @@ export const suites: ITestSuite[] = [
     name: "Users with groups",
     async run() {
       const result = await db.User.findAll({
-        attributes: ["email", "id"],
+        attributes: ["email", "name", "id"],
         include: [
           {
             model: db.Group,
@@ -72,7 +72,7 @@ export const suites: ITestSuite[] = [
     name: "Posts with tags, comments and comment users email",
     async run() {
       const result = await db.Post.findAll({
-        attributes: ["title", "id"],
+        attributes: ["title", "description", "id"],
         where: {},
         include: [
           {
@@ -88,7 +88,7 @@ export const suites: ITestSuite[] = [
               {
                 model: db.User,
                 as: "user",
-                attributes: ["email", "id"],
+                attributes: ["email", "name", "id"],
               },
             ],
           },
@@ -107,7 +107,7 @@ export const suites: ITestSuite[] = [
           {
             model: db.User,
             as: "user",
-            attributes: ["email", "id"],
+            attributes: ["email", "name", "id"],
             include: [
               {
                 model: db.Group,
@@ -117,7 +117,7 @@ export const suites: ITestSuite[] = [
             ],
           },
           {
-            attributes: ["title", "id"],
+            attributes: ["title", "description", "id"],
             model: db.Post,
             as: "post",
             include: [
@@ -134,7 +134,7 @@ export const suites: ITestSuite[] = [
               {
                 model: db.User,
                 as: "user",
-                attributes: ["email", "id"],
+                attributes: ["email", "name", "id"],
               },
             ],
           },
@@ -148,7 +148,7 @@ export const suites: ITestSuite[] = [
     name: "Get all posts that belong to users in a specific group",
     async run() {
       const result = await db.Post.findAll({
-        attributes: ["title"],
+        attributes: ["title", "description"],
         where: {},
         include: [
           {
@@ -164,7 +164,7 @@ export const suites: ITestSuite[] = [
           {
             model: db.User,
             as: "user",
-            attributes: ["email"],
+            attributes: ["email", "name"],
             required: true,
             include: [
               {
@@ -188,7 +188,7 @@ export const suites: ITestSuite[] = [
     name: "Get all posts sorted by category name",
     async run() {
       const result = await db.Post.findAll({
-        attributes: ["title"],
+        attributes: ["title", "description"],
         where: {},
         order: [["postCategory", "name", "ASC"]],
         include: [

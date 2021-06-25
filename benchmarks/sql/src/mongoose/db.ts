@@ -27,6 +27,7 @@ export async function setup() {
   const UserSchema = new mongoose.Schema({
     _id: Number,
     email: String,
+    name: String,
     groups: [{ type: mongoose.Schema.Types.Number, ref: "Group" }],
   });
   UserSchema.virtual("posts", {
@@ -81,6 +82,7 @@ export async function setup() {
   const PostSchema = new mongoose.Schema({
     _id: Number,
     title: String,
+    description: String,
     tags: [{ type: mongoose.Schema.Types.Number, ref: "Tag" }],
     category: { type: mongoose.Schema.Types.Number, ref: "PostsCategory" },
     user: { type: mongoose.Schema.Types.Number, ref: "User" },

@@ -5,11 +5,10 @@ import {
   POST_CATEGORIES,
   POST_PER_USER,
   COMMENTS_PER_POST,
-  COMMENT_TEXT_SAMPLES,
   USERS_COUNT,
 } from "../constants";
 import { db } from "./db";
-import { createRandomUser, createRandomPost } from "../common";
+import { createRandomUser, createRandomPost, createComment } from "../common";
 import { Collection } from "mongodb";
 
 export async function getNextId(
@@ -90,7 +89,7 @@ export async function runFixtures() {
           ...(await getNextId(db.Comments)),
           post: result.insertedId,
           user: users[commentIndex % users.length]._id,
-          text: "Hello Hello Hello Hello Hello",
+          ...createComment(),
         });
       }
     }
