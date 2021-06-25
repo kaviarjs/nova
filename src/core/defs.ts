@@ -51,6 +51,7 @@ export interface ILinkCollectionOptions {
    */
   inversedBy?: string;
   index?: boolean;
+  filters?: FilterQuery<any>;
 }
 
 type AnyObject = { [key: string]: any };

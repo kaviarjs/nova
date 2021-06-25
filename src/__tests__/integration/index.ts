@@ -1166,4 +1166,59 @@ describe("Main tests", function () {
 
     assert.lengthOf(result, 1);
   });
+
+  it("Should work with hardwired filters", async () => {
+    const Posts = A;
+    const Comments = B;
+
+    addLinks(Posts, {
+      comments: {
+        collection: () => Comments,
+        inversedBy: "post",
+        filters: {
+          isApproved: true,
+        },
+      },
+    });
+    addLinks(Comments, {
+      post: {
+        collection: () => Posts,
+        field: "postId",
+      },
+    });
+
+    const p1 = await Posts.insertOne({});
+
+    for (let i = 0; i < 10; i++) {
+      await Comments.insertOne({
+        number: i,
+        postId: p1.insertedId,
+        isApproved: i % 2 === 0,
+      });
+    }
+
+    const post = await query(Posts, {
+      _id: 1,
+      comments: {
+        $: {
+          filters: {
+            number: { $lte: 10 },
+          },
+          options: {
+            sort: {
+              number: 1,
+            },
+          },
+        },
+        number: 1,
+        _id: 1,
+      },
+    }).fetchOne();
+
+    assert.isObject(post);
+
+    assert.lengthOf(post.comments, 5);
+    assert.equal(post.comments[0].number, 0);
+    assert.equal(post.comments[4].number, 8);
+  });
 });

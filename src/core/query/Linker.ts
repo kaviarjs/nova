@@ -46,6 +46,13 @@ export default class Linker {
     }
   }
 
+  /**
+   * These refers to filters which are forced upon the link when defining it.
+   */
+  get hardwiredFilters() {
+    return this.linkConfig.filters || {};
+  }
+
   get relatedLinker(): Linker {
     if (!this._relatedLinker) {
       const targetCollection = this.linkConfig.collection();

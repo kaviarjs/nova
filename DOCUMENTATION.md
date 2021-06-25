@@ -206,6 +206,38 @@ Notes:
 - Field storage can be stored in a nested field. Specify `field: "profile.medicalProfileId"`
 - Indexes are automatically set. If you want custom indexes use `index: false` when defining the direct link.
 
+## Filtered Links
+
+If you want to get the links and apply certain filters on it you could do it by specifying `filters` when defining the link:
+
+```ts
+addLinks(Companies, {
+  employees: {
+    collection: () => Users,
+    inversedBy: "company",
+    filters: {
+      roles: { $in: ["EMPLOYEE"] },
+    },
+  },
+  managgers: {
+    collection: () => Users,
+    inversedBy: "company",
+    filters: {
+      roles: { $in: ["MANAGER"] },
+    },
+  },
+});
+
+addLinks(Users, {
+  company: {
+    collection: () => Companies,
+    field: "companyId",
+  },
+});
+```
+
+Now when you query by employees, you are guaranteed you will get all users which have the filters you specified in your query (if any) AND the filters specified in the link.
+
 ## Query-ing
 
 We showed a little bit of how we can query stuff, but we need to dive a little bit deeper, so let's explore together how we can filter, sort, and paginate our query.

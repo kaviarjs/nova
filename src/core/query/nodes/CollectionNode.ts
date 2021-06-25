@@ -323,6 +323,9 @@ export default class CollectionNode implements INode {
 
     const pipeline = [];
     Object.assign(filters, additionalFilters);
+    if (this.linker) {
+      Object.assign(filters, this.linker.hardwiredFilters);
+    }
 
     if (!_.isEmpty(filters)) {
       pipeline.push({ $match: filters });
