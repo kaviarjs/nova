@@ -1,7 +1,7 @@
 import * as _ from "lodash";
-import { Collection } from "mongodb";
+import { Collection, FilterQuery } from "mongodb";
 import { LINK_STORAGE } from "../constants";
-import { ILinkCollectionOptions } from "../defs";
+import { ILinkCollectionOptions, HardwiredFiltersOptions } from "../defs";
 
 export enum LinkStrategy {
   ONE,
@@ -47,10 +47,20 @@ export default class Linker {
   }
 
   /**
-   * These refers to filters which are forced upon the link when defining it.
+   * Returns the hard wired filters
+   * @param options
+   * @returns
    */
-  get hardwiredFilters() {
-    return this.linkConfig.filters || {};
+  getHardwiredFilters(options: HardwiredFiltersOptions = {}) {
+    if (this.linkConfig.filters) {
+      if (typeof this.linkConfig.filters === "function") {
+        return this.linkConfig.filters(options);
+      } else {
+        return this.linkConfig.filters;
+      }
+    }
+
+    return {};
   }
 
   get relatedLinker(): Linker {

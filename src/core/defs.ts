@@ -13,7 +13,7 @@ export interface IAstToQueryOptions<T = null> {
   maxLimit?: number;
   maxDepth?: number;
   deny?: string[];
-  filters?: any;
+  filters?: FilterQuery<T>;
   options?: any;
   embody?(body: QueryBodyType<T>, getArguments: (path: string) => any);
   /**
@@ -41,6 +41,9 @@ export interface ICollection {
   collectionName: any;
 }
 
+export type HardwiredFiltersOptions = {
+  filters?: FilterQuery<any>;
+};
 export interface ILinkCollectionOptions {
   collection: () => Collection;
   field?: string;
@@ -51,7 +54,9 @@ export interface ILinkCollectionOptions {
    */
   inversedBy?: string;
   index?: boolean;
-  filters?: FilterQuery<any>;
+  filters?:
+    | FilterQuery<any>
+    | ((options: HardwiredFiltersOptions) => FilterQuery<any>);
 }
 
 type AnyObject = { [key: string]: any };

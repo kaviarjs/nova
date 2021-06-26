@@ -238,6 +238,27 @@ addLinks(Users, {
 
 Now when you query by employees, you are guaranteed you will get all users which have the filters you specified in your query (if any) AND the filters specified in the link.
 
+The `filters` can also be a function that accepts currently set filters to it:
+
+```ts
+addLinks(Users, {
+  // Don't get comments approved unless specified
+  comments: {
+    filters(options) {
+      // the options.filters are the current filters by which this node is requested with
+      // Sample code: if you haven't added some default filters already, apply this one
+      if (options.filters.isApproved === undefined) {
+        return {
+          isApproved: true,
+        };
+      } else {
+        return {};
+      }
+    },
+  },
+});
+```
+
 ## Query-ing
 
 We showed a little bit of how we can query stuff, but we need to dive a little bit deeper, so let's explore together how we can filter, sort, and paginate our query.
