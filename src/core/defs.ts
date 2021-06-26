@@ -13,7 +13,7 @@ export interface IAstToQueryOptions<T = null> {
   maxLimit?: number;
   maxDepth?: number;
   deny?: string[];
-  filters?: FilterQuery<T>;
+  filters?: FilterQuery<any>;
   options?: any;
   embody?(body: QueryBodyType<T>, getArguments: (path: string) => any);
   /**
