@@ -1,7 +1,13 @@
 import * as _ from "lodash";
 import * as dot from "dot-object";
 
-import { SPECIAL_PARAM_FIELD, ALIAS_FIELD } from "../../constants";
+import {
+  SPECIAL_PARAM_FIELD,
+  ALIAS_FIELD,
+  SCHEMA_FIELD,
+  SCHEMA_BSON_DECODER_STORAGE,
+  SCHEMA_BSON_LEFTOVER_SERIALIZER,
+} from "../../constants";
 import {
   QueryBodyType,
   IReducerOption,
@@ -19,7 +25,22 @@ import Linker from "../Linker";
 import { INode } from "./INode";
 import FieldNode from "./FieldNode";
 import ReducerNode from "./ReducerNode";
-import { Collection } from "mongodb";
+import { Collection, ObjectId } from "mongodb";
+import { ClassSchema, t, Serializer } from "@deepkit/type";
+import { getBSONDecoder } from "@deepkit/bson";
+import { SCHEMA_STORAGE, SCHEMA_AGGREGATE_STORAGE } from "../../constants";
+
+const BSONLeftoverSerializer = new Serializer("custom serializer");
+BSONLeftoverSerializer.toClass.register("date", (property, compiler) => {
+  compiler.addSetter(`new Date(${compiler.accessor})`);
+});
+BSONLeftoverSerializer.toClass.register("objectId", (property, compiler) => {
+  compiler.setContext({
+    ObjectId,
+  });
+  // compiler.addCodeForSetter('const ObjectId = require("mongodb").ObjectId');
+  compiler.addSetter(`new ObjectId(${compiler.accessor})`);
+});
 
 export interface CollectionNodeOptions {
   collection: Collection;
@@ -43,9 +64,10 @@ export default class CollectionNode implements INode {
   public collection: Collection;
   public parent: CollectionNode;
   public alias: string;
+  public schema: ClassSchema;
 
   public nodes: INode[] = [];
-  public props: any;
+  public props: any; // TODO: refator to: ValueOrValueResolver<ICollectionQueryConfig>
 
   public isVirtual?: boolean;
   public isOneResult?: boolean;
@@ -78,9 +100,11 @@ export default class CollectionNode implements INode {
     this.body = _.cloneDeep(body);
     this.props = this.body[SPECIAL_PARAM_FIELD] || {};
     this.alias = this.body[ALIAS_FIELD];
+    this.schema = this.body[SCHEMA_FIELD];
 
     delete this.body[SPECIAL_PARAM_FIELD];
     delete this.body[ALIAS_FIELD];
+    delete this.body[SCHEMA_FIELD];
 
     this.explain = explain;
     this.name = name;
@@ -161,12 +185,14 @@ export default class CollectionNode implements INode {
     filters: any;
     options: any;
     pipeline: any[];
+    decoder: Function;
   } {
-    let props = _.isFunction(this.props)
-      ? this.props(parentObject)
-      : _.cloneDeep(this.props);
+    let props =
+      typeof this.props === "function"
+        ? this.props(parentObject)
+        : _.cloneDeep(this.props);
 
-    let { filters = {}, options = {}, pipeline = [] } = props;
+    let { filters = {}, options = {}, pipeline = [], decoder } = props;
 
     options.projection = this.blendInProjection(options.projection);
 
@@ -174,6 +200,7 @@ export default class CollectionNode implements INode {
       filters,
       options,
       pipeline,
+      decoder,
     };
   }
 
@@ -269,11 +296,48 @@ export default class CollectionNode implements INode {
       );
     }
 
-    const results = await this.collection
-      .aggregate(pipeline, {
-        allowDiskUse: true,
-      })
-      .toArray();
+    let results,
+      schema = this.schema,
+      decoder,
+      serializer,
+      aggregateSchema;
+
+    if (schema) {
+      aggregateSchema = CollectionNode.getAggregateSchema(schema);
+      decoder = getBSONDecoder(aggregateSchema);
+      serializer = CollectionNode.getSchemaSerializer(schema);
+    } else if (schema === undefined) {
+      if (this.collection[SCHEMA_STORAGE]) {
+        schema = this.collection[SCHEMA_STORAGE];
+        aggregateSchema = this.collection[SCHEMA_AGGREGATE_STORAGE];
+        decoder = this.collection[SCHEMA_BSON_DECODER_STORAGE];
+        serializer = this.collection[SCHEMA_BSON_LEFTOVER_SERIALIZER];
+      }
+    }
+    if (this.schema) {
+      const buffers = await this.collection
+        .aggregate(pipeline, {
+          allowDiskUse: true,
+          raw: true,
+        })
+        .toArray();
+
+      const result = decoder(buffers[0]);
+      if (result.errmsg) {
+        throw new Error(JSON.stringify(result));
+      }
+
+      const firstBatchResults = result.cursor.firstBatch;
+
+      return firstBatchResults;
+      // return firstBatchResults.map((result) => serializer.deserialize(result));
+    } else {
+      results = await this.collection
+        .aggregate(pipeline, {
+          allowDiskUse: true,
+        })
+        .toArray();
+    }
 
     if (this.explain) {
       console.log(
@@ -381,7 +445,7 @@ export default class CollectionNode implements INode {
         return;
       }
 
-      if (fieldName === SPECIAL_PARAM_FIELD) {
+      if (fieldName === SPECIAL_PARAM_FIELD || fieldName === SCHEMA_FIELD) {
         return;
       }
 
@@ -490,12 +554,60 @@ export default class CollectionNode implements INode {
     }
   }
 
-  private blendReducers() {
+  protected blendReducers() {
     this.reducerNodes
       .filter((node) => !node.isSpread)
       .forEach((reducerNode) => {
         reducerNode.isSpread = true;
         this.spread(reducerNode.dependency, reducerNode);
       });
+  }
+
+  protected cleanResults(results) {
+    this.schema.getProperties().forEach((property) => {
+      const name = property.name;
+      if (property.type === "objectId") {
+        for (const result of results) {
+          result[name] = new ObjectId(result[name]);
+        }
+      }
+      if (
+        property.type === "array" &&
+        property.getSubType().type === "objectId"
+      ) {
+        for (const result of results) {
+          result[name] = result[name].map((id) => new ObjectId(id));
+        }
+        // formulate a transaction
+        // property.name
+      }
+      if (property.type === "date") {
+        for (const result of results) {
+          result[name] = new Date(result[name]);
+        }
+      }
+      if (property.type === "partial" || property.type === "class") {
+        // property.pr
+      }
+      // if (property.type === "")
+    });
+  }
+
+  public static getSchemaSerializer(resultSchema: ClassSchema) {
+    return BSONLeftoverSerializer.for(resultSchema);
+  }
+
+  public static getAggregateSchema(resultSchema: ClassSchema) {
+    return t.schema({
+      ok: t.number,
+      errmsg: t.string.optional,
+      code: t.number.optional,
+      codeName: t.string.optional,
+      cursor: {
+        id: t.number,
+        firstBatch: t.array(t.partial(resultSchema)),
+        nextBatch: t.array(t.partial(resultSchema)),
+      },
+    });
   }
 }

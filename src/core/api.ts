@@ -12,7 +12,9 @@ import {
   EXPANDER_STORAGE,
   LINK_STORAGE,
   REDUCER_STORAGE,
+  SCHEMA_STORAGE,
   LINK_COLLECTION_OPTIONS_DEFAULTS,
+  SCHEMA_AGGREGATE_STORAGE,
 } from "./constants";
 import * as _ from "lodash";
 import Linker from "./query/Linker";
@@ -20,6 +22,13 @@ import Query from "./query/Query";
 import astToQuery from "./graphql/astToQuery";
 import { IGetLookupOperatorOptions } from "./query/Linker";
 import { Collection } from "mongodb";
+import { ClassSchema } from "@deepkit/type";
+import CollectionNode from "./query/nodes/CollectionNode";
+import {
+  SCHEMA_BSON_DECODER_STORAGE,
+  SCHEMA_BSON_LEFTOVER_SERIALIZER,
+} from "./constants";
+import { getBSONDecoder } from "@deepkit/bson";
 export function query<T>(
   collection: Collection,
   body: QueryBodyType,
@@ -41,6 +50,19 @@ export function clear(collection: Collection) {
   collection[LINK_STORAGE] = {};
   collection[REDUCER_STORAGE] = {};
   collection[EXPANDER_STORAGE] = {};
+}
+
+export function addSchema(collection: Collection, schema: ClassSchema) {
+  collection[SCHEMA_STORAGE] = schema;
+  collection[SCHEMA_AGGREGATE_STORAGE] = CollectionNode.getAggregateSchema(
+    schema
+  );
+  collection[SCHEMA_BSON_DECODER_STORAGE] = getBSONDecoder(
+    collection[SCHEMA_AGGREGATE_STORAGE]
+  );
+  collection[
+    SCHEMA_BSON_LEFTOVER_SERIALIZER
+  ] = CollectionNode.getSchemaSerializer(schema);
 }
 
 export function addLinks(collection: Collection, data: ILinkOptions) {

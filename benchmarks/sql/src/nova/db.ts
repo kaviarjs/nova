@@ -1,4 +1,4 @@
-import { addLinks } from "@kaviar/nova";
+import { addLinks, addSchema, t } from "@kaviar/nova";
 import { Collection, MongoClient } from "mongodb";
 // Connection URI
 const DB = "nova";
@@ -105,4 +105,54 @@ export async function setup() {
       inversedBy: "tags",
     },
   });
+
+  addSchema(
+    db.Users,
+    t.schema({
+      _id: t.number,
+      email: t.string,
+      name: t.string,
+      groupsIds: t.array(t.number),
+    })
+  );
+
+  addSchema(
+    db.Groups,
+    t.schema({
+      name: t.string,
+    })
+  );
+
+  addSchema(
+    db.Posts,
+    t.schema({
+      title: t.string,
+      tagsIds: t.array(t.number),
+      categoryId: t.number,
+      userId: t.number,
+    })
+  );
+
+  addSchema(
+    db.PostsCategories,
+    t.schema({
+      name: t.string,
+    })
+  );
+
+  addSchema(
+    db.Comments,
+    t.schema({
+      text: t.string,
+      postId: t.number,
+      userId: t.number,
+    })
+  );
+
+  addSchema(
+    db.Tags,
+    t.schema({
+      name: t.string,
+    })
+  );
 }

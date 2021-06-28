@@ -1,4 +1,5 @@
 import { Collection, FilterQuery } from "mongodb";
+import { ClassSchema } from "@deepkit/type";
 
 export interface IToArrayable {
   toArray(): Promise<any[]>;
@@ -96,7 +97,7 @@ export type ValueOrValueResolver<T> = T | ((...args: any[]) => T);
  * @deprecated Use QueryBody type instead to ensure type safety.
  */
 export interface IQueryBody {
-  $?: ICollectionQueryConfig | ValueOrValueResolver<ICollectionQueryConfig>;
+  $?: ValueOrValueResolver<ICollectionQueryConfig>;
   $alias?: string;
   [field: string]:
     | string
@@ -130,11 +131,13 @@ export interface IParameterableObject extends ICollectionQueryConfig {}
 // The separation between body and sub body is the fact body doesn't have functionable $()
 type BodyCustomise<T = null> = {
   $?: ICollectionQueryConfig<T>;
+  $schema?: ClassSchema;
 };
 
 type SubBodyCustomise<T = null> = {
   $?: ValueOrValueResolver<ICollectionQueryConfig<T>>;
   $alias?: string;
+  $schema?: ClassSchema;
 };
 
 type SimpleFieldValue =
@@ -159,7 +162,11 @@ type SimpleFieldValue =
 type Unpacked<T> = T extends (infer U)[] ? U : T;
 
 export type AnyBody = {
+  $alias?: string;
+  $schema?: ClassSchema;
   [key: string]:
+    | string
+    | ClassSchema
     | SimpleFieldValue
     | ValueOrValueResolver<ICollectionQueryConfig>
     | AnyBody;
