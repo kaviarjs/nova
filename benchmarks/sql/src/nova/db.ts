@@ -119,6 +119,7 @@ export async function setup() {
   addSchema(
     db.Groups,
     t.schema({
+      _id: t.number,
       name: t.string,
     })
   );
@@ -126,7 +127,9 @@ export async function setup() {
   addSchema(
     db.Posts,
     t.schema({
+      _id: t.number,
       title: t.string,
+      description: t.string,
       tagsIds: t.array(t.number),
       categoryId: t.number,
       userId: t.number,
@@ -136,6 +139,7 @@ export async function setup() {
   addSchema(
     db.PostsCategories,
     t.schema({
+      _id: t.number,
       name: t.string,
     })
   );
@@ -143,6 +147,7 @@ export async function setup() {
   addSchema(
     db.Comments,
     t.schema({
+      _id: t.number,
       text: t.string,
       postId: t.number,
       userId: t.number,
@@ -152,6 +157,7 @@ export async function setup() {
   addSchema(
     db.Tags,
     t.schema({
+      _id: t.number,
       name: t.string,
     })
   );

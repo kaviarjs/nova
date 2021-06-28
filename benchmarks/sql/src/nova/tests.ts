@@ -31,6 +31,7 @@ export const suites: ITestSuite[] = [
           comments: {
             _id: 1,
             text: 1,
+            postId: 1, // ALERT REMOVE
             user: {
               email: 1,
             },

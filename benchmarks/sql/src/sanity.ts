@@ -13,6 +13,7 @@ export const sanity = {
     expect(result).toHaveLength(USERS_COUNT);
 
     for (const user of result) {
+      expect(typeof user.name).toBe("string");
       expect(user.posts).toHaveLength(POST_PER_USER);
       expect(user.groups).toHaveLength(1);
       expect(typeof user.groups[0].name).toBe("string");
