@@ -314,11 +314,14 @@ export default class CollectionNode implements INode {
         serializer = this.collection[SCHEMA_BSON_LEFTOVER_SERIALIZER];
       }
     }
-    if (this.schema) {
+    if (schema) {
+      // @types/mongodb complains about `batchSize` not being a valid option, it's a false issue
+      // @ts-ignore
       const buffers = await this.collection
         .aggregate(pipeline, {
           allowDiskUse: true,
           raw: true,
+          batchSize: 1_000_000,
         })
         .toArray();
 
@@ -329,8 +332,7 @@ export default class CollectionNode implements INode {
 
       const firstBatchResults = result.cursor.firstBatch;
 
-      return firstBatchResults;
-      // return firstBatchResults.map((result) => serializer.deserialize(result));
+      return firstBatchResults.map((result) => serializer.deserialize(result));
     } else {
       results = await this.collection
         .aggregate(pipeline, {
@@ -561,36 +563,6 @@ export default class CollectionNode implements INode {
         reducerNode.isSpread = true;
         this.spread(reducerNode.dependency, reducerNode);
       });
-  }
-
-  protected cleanResults(results) {
-    this.schema.getProperties().forEach((property) => {
-      const name = property.name;
-      if (property.type === "objectId") {
-        for (const result of results) {
-          result[name] = new ObjectId(result[name]);
-        }
-      }
-      if (
-        property.type === "array" &&
-        property.getSubType().type === "objectId"
-      ) {
-        for (const result of results) {
-          result[name] = result[name].map((id) => new ObjectId(id));
-        }
-        // formulate a transaction
-        // property.name
-      }
-      if (property.type === "date") {
-        for (const result of results) {
-          result[name] = new Date(result[name]);
-        }
-      }
-      if (property.type === "partial" || property.type === "class") {
-        // property.pr
-      }
-      // if (property.type === "")
-    });
   }
 
   public static getSchemaSerializer(resultSchema: ClassSchema) {
