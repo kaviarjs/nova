@@ -1229,7 +1229,7 @@ describe("Main tests", function () {
     assert.equal(post.comments[4].number, 8);
   });
 
-  it.only("Should work with custom data decoders", async () => {
+  it("Should work with custom data decoders", async () => {
     manyToMany(A, B, {
       linkName: "bs",
     });

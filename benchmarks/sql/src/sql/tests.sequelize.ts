@@ -195,22 +195,22 @@ export const suites: ITestSuite[] = [
           {
             model: db.Tag,
             as: "tags",
-            attributes: ["name"],
+            attributes: ["name", "id"],
           },
           {
             model: db.PostCategory,
             as: "postCategory",
-            attributes: ["name"],
+            attributes: ["name", "id"],
           },
           {
             model: db.User,
             as: "user",
-            attributes: ["email"],
+            attributes: ["email", "name", "id"],
             include: [
               {
                 model: db.Group,
                 as: "groups",
-                attributes: ["name"],
+                attributes: ["name", "id"],
               },
             ],
           },
