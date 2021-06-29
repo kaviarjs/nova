@@ -763,7 +763,7 @@ However, we currently can't work with fields in arrays of objects, or have array
 
 ## Hypernova
 
-This is the crown jewl of Nova. It has been engineered for absolute performance. We had to name this whole process somehow, and we had to give it a bombastic name. Hypernova is the one that stuck.
+This is the crown jewl of Nova. It has been engineered for absolute performance. We had to name this whole process somehow, and we had to give it a bombastic name, due to its similarity with an explosion of data.
 
 To understand what we're talking about let's take this example of a query:
 
@@ -898,4 +898,50 @@ const Query = {
       .fetch();
   },
 };
+```
+
+## High Performance Queries
+
+We can benefit of extreme rapid BSON decoding through JIT compilers as long as we know not only the fields, but their type too. This is done with the help of [@deepkit/bson](https://github.com/deepkit/deepkit-framework/tree/master/packages/bson) and [@deepkit/type](https://deepkit.io/documentation/type)
+
+```ts
+import { t, query } from "@kaviar/nova"; // t is from "deepkit/type" package
+
+const postSchema = t.schema({
+  text: t.string,
+  createdAt: t.date,
+});
+
+const commentsSchema = t.schema({
+  text: t.string,
+});
+
+// We do this by adding the special "$schema" field at the collection node we want fast procesing
+query(Posts, {
+  $schema: postSchema,
+  text: 1,
+  createdAt: 1,
+  comments: {
+    $schema: commentsSchema,
+  },
+});
+```
+
+You also have the option to `addSchema` directly to the collections itself, removing the necessity of having to specify `$schema`:
+
+```ts
+import { t, addSchema } from "@kaviar/nova"; // t is from "deepkit/type" package
+
+addSchema(
+  Posts,
+  t.schema({
+    text: t.string,
+    createdAt: t.date,
+  })
+);
+
+// High Performance Mode is now activated
+query(Posts, {
+  text: 1,
+});
 ```
