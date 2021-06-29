@@ -902,7 +902,7 @@ const Query = {
 
 ## High Performance Queries
 
-We can benefit of extreme rapid BSON decoding through JIT compilers as long as we know not only the fields, but their type too. This is done with the help of [@deepkit/bson](https://github.com/deepkit/deepkit-framework/tree/master/packages/bson) and [@deepkit/type](https://deepkit.io/documentation/type)
+We can benefit of extreme rapid BSON decoding through JIT compilers as long as we know not only the fields, but their type too. This is done with the help of [@deepkit/bson](https://github.com/deepkit/deepkit-framework/tree/master/packages/bson) and [@deepkit/type](https://deepkit.io/documentation/type).
 
 ```ts
 import { t, query } from "@kaviar/nova"; // t is from "deepkit/type" package
