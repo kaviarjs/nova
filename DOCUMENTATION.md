@@ -940,8 +940,10 @@ addSchema(
   })
 );
 
-// High Performance Mode is now activated
+// High Performance Mode is now activated on all queries
 query(Posts, {
   text: 1,
 });
 ```
+
+Reducers do not ne to be added in schema, as they are added in the `post-processing` phase after the result has been retrieved. Be careful, if you add another field to the request, it must be in the schema, otherwise it won't show up.

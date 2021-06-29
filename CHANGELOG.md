@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.7.0
+
+- Added high-performance query-ing via JIT BSON decoding techniques
+
 ## 1.6.0
 
 - Hardwired filters, allowing links to be configured with "always on" filters
