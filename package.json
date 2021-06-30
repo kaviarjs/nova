@@ -22,11 +22,11 @@
     "gen-doc": "typedoc ./src/index.ts --exclude ./src/__tests__ --out typeDocs --tsconfig tsconfig.json"
   },
   "dependencies": {
+    "@deepkit/bson": "1.0.1-alpha.35",
+    "@deepkit/type": "1.0.1-alpha.35",
     "dot-object": "^1.9.0",
     "graphql-fields": "^2.0.3",
-    "lodash": "^4.17.15",
-    "@deepkit/bson": "*",
-    "@deepkit/type": "*"
+    "lodash": "^4.17.15"
   },
   "peerDependencies": {
     "mongodb": "^3.3.3"
