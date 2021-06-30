@@ -1,6 +1,9 @@
 import * as _ from "lodash";
 import CollectionNode from "../nodes/CollectionNode";
-import { idsEqual } from "../../../__tests__/integration/helpers";
+
+export function idsEqual(id1, id2) {
+  return id1.toString() === id2.toString();
+}
 
 /**
  *
