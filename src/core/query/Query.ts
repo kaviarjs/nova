@@ -23,7 +23,7 @@ export default class Query {
   ) {
     this.collection = collection;
     this.queryName = collection.collectionName;
-    this.body = _.cloneDeep(body);
+    this.body = body;
     this.graph = new CollectionNode(
       {
         collection,

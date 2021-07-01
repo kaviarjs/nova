@@ -13,6 +13,7 @@ import { client } from "../connection";
 import { SPECIAL_PARAM_FIELD } from "../../core/constants";
 import { enforceMaxLimit } from "../../core/graphql/astToQuery";
 import Query from "../../core/query/Query";
+import { t } from "@deepkit/type";
 
 describe("GraphQL", function () {
   let A: Collection;
@@ -81,10 +82,14 @@ describe("GraphQL", function () {
 
     const info = astQueryToInfo(ast);
 
+    const schema = t.schema({
+      a: t.number,
+    });
+
     const query = astToQuery(Users, info, {
       // We also check if intersection works and preserves the arguments
       intersect: {
-        a: 1,
+        // a: 1,
         profile: {
           a: 1,
         },
@@ -92,6 +97,10 @@ describe("GraphQL", function () {
       embody(body, getArguments) {
         const profileArguments = getArguments("profile");
         assert.equal(profileArguments.withPrefix, true);
+      },
+      sideBody: {
+        a: 1,
+        $schema: schema,
       },
     });
 
