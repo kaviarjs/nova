@@ -51,7 +51,7 @@ export default class Query {
 
   public async fetchOne(): Promise<any> {
     this.graph.forceSingleResult = true;
-    const results = await this.fetch();
+    const results = await this.toArray();
 
     return _.first(results);
   }
