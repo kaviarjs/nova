@@ -64,7 +64,7 @@ describe("GraphQL", function () {
     assert.isUndefined(body.profile[SPECIAL_PARAM_FIELD]);
   });
 
-  it.only("#astToQuery()", () => {
+  it("#astToQuery()", () => {
     const Users = A;
 
     const ast = gql`
