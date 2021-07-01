@@ -1,6 +1,6 @@
 {
   "name": "@kaviar/nova",
-  "version": "1.7.6",
+  "version": "1.7.7",
   "description": "Nova is a relational query layer over MongoDB Node Drivers",
   "main": "dist/index.js",
   "repository": {
