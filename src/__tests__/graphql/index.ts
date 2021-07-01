@@ -10,7 +10,7 @@ import { log, getRandomCollection } from "../integration/helpers";
 import { query, clear } from "../../core/api";
 import { Collection } from "mongodb";
 import { client } from "../connection";
-import { SPECIAL_PARAM_FIELD } from "../../core/constants";
+import { SPECIAL_PARAM_FIELD, SCHEMA_FIELD } from "../../core/constants";
 import { enforceMaxLimit } from "../../core/graphql/astToQuery";
 import Query from "../../core/query/Query";
 import { t } from "@deepkit/type";
@@ -64,7 +64,7 @@ describe("GraphQL", function () {
     assert.isUndefined(body.profile[SPECIAL_PARAM_FIELD]);
   });
 
-  it("#astToQuery()", () => {
+  it.only("#astToQuery()", () => {
     const Users = A;
 
     const ast = gql`
@@ -89,7 +89,7 @@ describe("GraphQL", function () {
     const query = astToQuery(Users, info, {
       // We also check if intersection works and preserves the arguments
       intersect: {
-        // a: 1,
+        a: 1,
         profile: {
           a: 1,
         },
@@ -106,6 +106,8 @@ describe("GraphQL", function () {
 
     assert.instanceOf(query, Query);
 
+    // console.log(query.body);
+    assert.isDefined(query.body[SCHEMA_FIELD]);
     assert.isUndefined(query.body.b);
     assert.isUndefined(query.body.profile.b);
   });

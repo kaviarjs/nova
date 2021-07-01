@@ -102,11 +102,11 @@ export default class CollectionNode implements INode {
       );
     }
 
-    this.body = _.cloneDeep(body);
-    this.props = this.body[SPECIAL_PARAM_FIELD] || {};
-    this.alias = this.body[ALIAS_FIELD];
-    this.schema = this.body[SCHEMA_FIELD];
+    this.props = body[SPECIAL_PARAM_FIELD] || {};
+    this.alias = body[ALIAS_FIELD];
+    this.schema = body[SCHEMA_FIELD];
 
+    this.body = _.cloneDeep(body);
     delete this.body[SPECIAL_PARAM_FIELD];
     delete this.body[ALIAS_FIELD];
     delete this.body[SCHEMA_FIELD];
