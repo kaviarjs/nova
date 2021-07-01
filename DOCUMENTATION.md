@@ -946,4 +946,4 @@ query(Posts, {
 });
 ```
 
-Reducers do not ne to be added in schema, as they are added in the `post-processing` phase after the result has been retrieved. Be careful, if you add another field to the request, it must be in the schema, otherwise it won't show up.
+Reducers do not need to be added in the schema, as they are computed and added in the `post-processing` phase after the result has been retrieved. Be careful, if you add another field to the request, it must be in the schema, otherwise it won't show up.

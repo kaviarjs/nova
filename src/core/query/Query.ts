@@ -41,6 +41,7 @@ export default class Query {
    * @returns {*}
    */
   public async fetch(): Promise<any[]> {
+    this.graph.forceSingleResult = false;
     return this.toArray();
   }
 
@@ -49,6 +50,7 @@ export default class Query {
   }
 
   public async fetchOne(): Promise<any> {
+    this.graph.forceSingleResult = true;
     const results = await this.fetch();
 
     return _.first(results);

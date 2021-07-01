@@ -73,6 +73,11 @@ export default class CollectionNode implements INode {
   public isOneResult?: boolean;
 
   /**
+   * When doing .fetchOne() from the Query and forgetting about hard-coding a limit, we should put that limit ourselves to avoid accidentally large queries
+   */
+  public forceSingleResult: boolean = false;
+
+  /**
    * When this is true, we are explaining the pipeline, and the given results
    */
   public readonly explain: boolean;
@@ -414,12 +419,17 @@ export default class CollectionNode implements INode {
       pipeline.push(...reducerNode.pipeline);
     });
 
-    if (options.limit) {
+    let limit = options.limit;
+    if (this.forceSingleResult) {
+      limit = 1;
+    }
+
+    if (limit) {
       if (!options.skip) {
         options.skip = 0;
       }
       pipeline.push({
-        $limit: options.limit + options.skip,
+        $limit: limit + options.skip,
       });
     }
 
