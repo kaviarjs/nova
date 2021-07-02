@@ -2,20 +2,26 @@ import prepareForDelivery from "../lib/prepareForDelivery";
 import storeHypernovaResults from "./storeHypernovaResults";
 import CollectionNode from "../nodes/CollectionNode";
 
-async function hypernova(collectionNode: CollectionNode) {
+async function hypernovaRecursive(collectionNode: CollectionNode) {
   const collectionNodes = collectionNode.collectionNodes;
 
-  for (const childCollectionNode of collectionNodes) {
-    await storeHypernovaResults(childCollectionNode);
+  const promises = [];
 
-    await hypernova(childCollectionNode);
+  for (const childCollectionNode of collectionNodes) {
+    promises.push(
+      storeHypernovaResults(childCollectionNode).then(() =>
+        hypernovaRecursive(childCollectionNode)
+      )
+    );
   }
+
+  await Promise.all(promises);
 }
 
-export default async function hypernovaInit(collectionNode: CollectionNode) {
+export default async function hypernova(collectionNode: CollectionNode) {
   collectionNode.results = await collectionNode.toArray();
 
-  await hypernova(collectionNode);
+  await hypernovaRecursive(collectionNode);
   await prepareForDelivery(collectionNode);
 
   return collectionNode.results;
