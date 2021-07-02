@@ -114,7 +114,7 @@ export default class CollectionNode implements INode {
     this.props = body[SPECIAL_PARAM_FIELD] || {};
     this.alias = body[ALIAS_FIELD];
     this.schema = body[SCHEMA_FIELD];
-    this.queryAllFields = body[ALL_FIELDS];
+    this.queryAllFields = Boolean(body[ALL_FIELDS]);
 
     this.body = _.cloneDeep(body);
     delete this.body[SPECIAL_PARAM_FIELD];
