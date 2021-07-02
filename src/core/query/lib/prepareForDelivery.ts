@@ -3,10 +3,13 @@ import applyReducers from "./computeReducers";
 import CollectionNode from "../nodes/CollectionNode";
 import projectGraphToDataSet from "./projectGraphToDataSet";
 
-export default async (node) => {
+export default async (node: CollectionNode) => {
   storeOneResults(node, node.results);
   await applyReducers(node);
-  node.results = projectGraphToDataSet(node.body, node.results);
+
+  if (!node.queryAllFields) {
+    node.results = projectGraphToDataSet(node.body, node.results);
+  }
 };
 
 export function storeOneResults(node: CollectionNode, sameLevelResults: any[]) {

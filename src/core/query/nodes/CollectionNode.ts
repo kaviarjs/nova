@@ -28,7 +28,11 @@ import ReducerNode from "./ReducerNode";
 import { Collection, ObjectId } from "mongodb";
 import { ClassSchema, t, Serializer } from "@deepkit/type";
 import { getBSONDecoder } from "@deepkit/bson";
-import { SCHEMA_STORAGE, SCHEMA_AGGREGATE_STORAGE } from "../../constants";
+import {
+  SCHEMA_STORAGE,
+  SCHEMA_AGGREGATE_STORAGE,
+  ALL_FIELDS,
+} from "../../constants";
 
 const BSONLeftoverSerializer = new Serializer("custom serializer");
 BSONLeftoverSerializer.toClass.register("date", (property, compiler) => {
@@ -78,6 +82,11 @@ export default class CollectionNode implements INode {
   public forceSingleResult: boolean = false;
 
   /**
+   * Whether to just dump the fields without a projection
+   */
+  public queryAllFields: boolean = false;
+
+  /**
    * When this is true, we are explaining the pipeline, and the given results
    */
   public readonly explain: boolean;
@@ -105,11 +114,13 @@ export default class CollectionNode implements INode {
     this.props = body[SPECIAL_PARAM_FIELD] || {};
     this.alias = body[ALIAS_FIELD];
     this.schema = body[SCHEMA_FIELD];
+    this.queryAllFields = body[ALL_FIELDS];
 
     this.body = _.cloneDeep(body);
     delete this.body[SPECIAL_PARAM_FIELD];
     delete this.body[ALIAS_FIELD];
     delete this.body[SCHEMA_FIELD];
+    delete this.body[ALL_FIELDS];
 
     this.explain = explain;
     this.name = name;
@@ -199,7 +210,9 @@ export default class CollectionNode implements INode {
 
     let { filters = {}, options = {}, pipeline = [], decoder } = props;
 
-    options.projection = this.blendInProjection(options.projection);
+    if (!this.queryAllFields) {
+      options.projection = this.blendInProjection(options.projection);
+    }
 
     return {
       filters,
@@ -339,9 +352,12 @@ export default class CollectionNode implements INode {
 
       return firstBatchResults.map((result) => serializer.deserialize(result));
     } else {
+      const now = new Date();
+      // @ts-ignore
       results = await this.collection
         .aggregate(pipeline, {
           allowDiskUse: true,
+          batchSize: 1_000_000,
         })
         .toArray();
     }

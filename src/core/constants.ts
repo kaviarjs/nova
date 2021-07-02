@@ -12,6 +12,7 @@ export const EXPANDER_STORAGE = Symbol("expandersStorage");
 export const SPECIAL_PARAM_FIELD = "$";
 export const ALIAS_FIELD = "$alias";
 export const SCHEMA_FIELD = "$schema";
+export const ALL_FIELDS = "$all";
 
 export const SPECIAL_FIELDS = [SPECIAL_PARAM_FIELD, ALIAS_FIELD, SCHEMA_FIELD];
 

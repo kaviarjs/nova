@@ -132,11 +132,13 @@ export interface IParameterableObject extends ICollectionQueryConfig {}
 type BodyCustomise<T = null> = {
   $?: ICollectionQueryConfig<T>;
   $schema?: ClassSchema;
+  $all?: boolean;
 };
 
 type SubBodyCustomise<T = null> = {
   $?: ValueOrValueResolver<ICollectionQueryConfig<T>>;
   $alias?: string;
+  $all?: boolean;
   $schema?: ClassSchema;
 };
 

@@ -54,13 +54,10 @@ export async function testSuite(
 
   for (const suite of suites) {
     const result = await testRunner(suite, options);
-    console.log(suite.name, {
-      fastest: result.fastest + "ms",
-      slowest: result.slowest + "ms",
-      mean: result.mean + "ms",
-      firstRun: result.firstRun + "ms",
-      iterations: result.iterations,
-    });
+    console.log(suite.name);
+    console.log(
+      `fastest: ${result.fastest}ms | slowest: ${result.slowest}ms | mean: ${result.mean}ms | firstRun: ${result.firstRun}ms | iterations: ${result.iterations}`
+    );
   }
   console.log("✓ Done");
 }

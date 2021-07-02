@@ -9,6 +9,7 @@ const MONGO_URI = `mongodb://localhost:27017/${DB}`;
 const client = new MongoClient(MONGO_URI, {
   useUnifiedTopology: true,
   useNewUrlParser: true,
+  poolSize: 10,
 });
 
 export const db: {

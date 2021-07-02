@@ -25,7 +25,10 @@ async function hypernovaRecursive(collectionNode: CollectionNode) {
 export default async function hypernova(collectionNode: CollectionNode) {
   collectionNode.results = await collectionNode.toArray();
 
-  await hypernovaRecursive(collectionNode);
+  if (collectionNode.collectionNodes.length > 0) {
+    await hypernovaRecursive(collectionNode);
+  }
+
   await prepareForDelivery(collectionNode);
 
   return collectionNode.results;

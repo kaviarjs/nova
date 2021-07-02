@@ -902,6 +902,10 @@ const Query = {
 
 ## High Performance Queries
 
+Deeper queries are run in parallel, make sure you have a connection `poolSize` of 10. This can be configured when creating your `MongoClient`.
+
+If you have a lot of nested fields, you also have the `$all: true` field at your disposal, sending out a large projection to Mongo can make it slower, there can be cases where you want all or 99% of fields.
+
 We can benefit of extreme rapid BSON decoding through JIT compilers as long as we know not only the fields, but their type too. This is done with the help of [@deepkit/bson](https://github.com/deepkit/deepkit-framework/tree/master/packages/bson) and [@deepkit/type](https://deepkit.io/documentation/type).
 
 ```ts
