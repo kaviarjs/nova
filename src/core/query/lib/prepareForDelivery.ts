@@ -7,7 +7,10 @@ export default async (node: CollectionNode) => {
   storeOneResults(node, node.results);
   await applyReducers(node);
 
-  if (!node.queryAllFields) {
+  if (
+    node.queryAllFields === false ||
+    (node.queryAllFields === true && node.fieldNodes.length > 0)
+  ) {
     node.results = projectGraphToDataSet(node.body, node.results);
   }
 };
