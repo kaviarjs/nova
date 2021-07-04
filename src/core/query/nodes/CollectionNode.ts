@@ -297,63 +297,9 @@ export default class CollectionNode implements INode {
   }
 
   /**
-   * When doing toArray we have 3 choices, if it uses pipeline that we use aggregate
-   * If it doesn't we use either find or findOne() depending on what was called on the `Query` object
-   *
-   * @param additionalFilters
-   * @param parentObject
-   * @returns
-   */
-  public async toArray(additionalFilters = {}, parentObject?: any) {
-    const useAggregate = !this.forceSingleResult;
-
-    if (useAggregate) {
-      return this.toArrayByAggregate(additionalFilters, parentObject);
-    } else {
-      const { filters, options } = this.getFiltersAndOptions(
-        additionalFilters,
-        parentObject
-      );
-
-      let { schema, documentDecoder, serializer } = this.getJITSchemaInfo();
-
-      let result;
-      if (schema) {
-        options.raw = true;
-      }
-      if (this.forceSingleResult) {
-        result = await this.collection.findOne(filters, options);
-        if (!result) {
-          return [];
-        }
-      } else {
-        result = await this.collection.find(filters, options).toArray();
-        if (result.length === 0) {
-          return [];
-        }
-      }
-
-      if (schema) {
-        if (this.forceSingleResult) {
-          result = serializer.deserialize(documentDecoder(result));
-        } else {
-          result = result
-            .map((r) => documentDecoder(r))
-            .map((r) => serializer.deserialize(r));
-        }
-      }
-
-      if (this.forceSingleResult) {
-        return [result];
-      } else {
-        return result;
-      }
-    }
-  }
-  /**
    * Fetches the data accordingly
    */
-  public async toArrayByAggregate(additionalFilters = {}, parentObject?: any) {
+  public async toArray(additionalFilters = {}, parentObject?: any) {
     const pipeline = this.getAggregationPipeline(
       additionalFilters,
       parentObject

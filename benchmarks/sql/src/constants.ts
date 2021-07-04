@@ -1,5 +1,5 @@
 export const RUN_FIXTURES = false;
-export const TEST_ITERATIONS = 100;
+export const TEST_ITERATIONS = 500;
 export const USERS_COUNT = 10;
 export const POST_PER_USER = 20;
 export const COMMENTS_PER_POST = 30;

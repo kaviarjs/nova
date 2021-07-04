@@ -55,6 +55,18 @@ export function createSuites(): ITestSuite[] {
 
   return [
     {
+      name: "Test Fetching Bigger Model (Pure Mongo)",
+      async run() {
+        return await db.UserGameStats.findOne({}, {});
+      },
+    },
+    {
+      name: "Test Fetching Bigger Models (Pure Mongo)",
+      async run() {
+        return await db.UserGameStats.find({}).toArray();
+      },
+    },
+    {
       name: "Test Fetching Bigger Model (Nova)",
       async run() {
         return await query(db.UserGameStats, {
@@ -68,18 +80,6 @@ export function createSuites(): ITestSuite[] {
         return await query(db.UserGameStats, {
           $all: true,
         }).fetch();
-      },
-    },
-    {
-      name: "Test Fetching Bigger Model (Pure Mongo)",
-      async run() {
-        return await db.UserGameStats.findOne({});
-      },
-    },
-    {
-      name: "Test Fetching Bigger Models (Pure Mongo)",
-      async run() {
-        return await db.UserGameStats.find({}).toArray();
       },
     },
   ];
