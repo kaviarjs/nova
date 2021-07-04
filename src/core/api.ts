@@ -15,6 +15,7 @@ import {
   SCHEMA_STORAGE,
   LINK_COLLECTION_OPTIONS_DEFAULTS,
   SCHEMA_AGGREGATE_STORAGE,
+  SCHEMA_BSON_OBJECT_DECODER_STORAGE,
 } from "./constants";
 import * as _ from "lodash";
 import Linker from "./query/Linker";
@@ -25,8 +26,8 @@ import { Collection } from "mongodb";
 import { ClassSchema } from "@deepkit/type";
 import CollectionNode from "./query/nodes/CollectionNode";
 import {
-  SCHEMA_BSON_DECODER_STORAGE,
-  SCHEMA_BSON_LEFTOVER_SERIALIZER,
+  SCHEMA_BSON_AGGREGATE_DECODER_STORAGE,
+  SCHEMA_BSON_DOCUMENT_SERIALIZER,
 } from "./constants";
 import { getBSONDecoder } from "@deepkit/bson";
 
@@ -59,11 +60,12 @@ export function addSchema(collection: Collection, schema: ClassSchema) {
   collection[SCHEMA_AGGREGATE_STORAGE] = CollectionNode.getAggregateSchema(
     schema
   );
-  collection[SCHEMA_BSON_DECODER_STORAGE] = getBSONDecoder(
+  collection[SCHEMA_BSON_AGGREGATE_DECODER_STORAGE] = getBSONDecoder(
     collection[SCHEMA_AGGREGATE_STORAGE]
   );
+  collection[SCHEMA_BSON_OBJECT_DECODER_STORAGE] = getBSONDecoder(schema);
   collection[
-    SCHEMA_BSON_LEFTOVER_SERIALIZER
+    SCHEMA_BSON_DOCUMENT_SERIALIZER
   ] = CollectionNode.getSchemaSerializer(schema);
 }
 

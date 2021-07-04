@@ -1,8 +1,13 @@
 import prepareForDelivery from "../lib/prepareForDelivery";
 import storeHypernovaResults from "./storeHypernovaResults";
 import CollectionNode from "../nodes/CollectionNode";
+import { performance } from "perf_hooks";
 
 async function hypernovaRecursive(collectionNode: CollectionNode) {
+  if (collectionNode.collectionNodes.length === 0) {
+    return;
+  }
+
   const collectionNodes = collectionNode.collectionNodes;
   /**
    * The concept here is that hypernova can drill down in parallel. There shouldn't be any reason to block or run queries in-sync
@@ -25,10 +30,7 @@ async function hypernovaRecursive(collectionNode: CollectionNode) {
 export default async function hypernova(collectionNode: CollectionNode) {
   collectionNode.results = await collectionNode.toArray();
 
-  if (collectionNode.collectionNodes.length > 0) {
-    await hypernovaRecursive(collectionNode);
-  }
-
+  await hypernovaRecursive(collectionNode);
   await prepareForDelivery(collectionNode);
 
   return collectionNode.results;

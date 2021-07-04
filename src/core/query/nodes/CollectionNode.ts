@@ -5,8 +5,8 @@ import {
   SPECIAL_PARAM_FIELD,
   ALIAS_FIELD,
   SCHEMA_FIELD,
-  SCHEMA_BSON_DECODER_STORAGE,
-  SCHEMA_BSON_LEFTOVER_SERIALIZER,
+  SCHEMA_BSON_AGGREGATE_DECODER_STORAGE,
+  SCHEMA_BSON_DOCUMENT_SERIALIZER,
 } from "../../constants";
 import {
   QueryBodyType,
@@ -26,25 +26,15 @@ import { INode } from "./INode";
 import FieldNode from "./FieldNode";
 import ReducerNode from "./ReducerNode";
 import { Collection, ObjectId } from "mongodb";
-import { ClassSchema, t, Serializer } from "@deepkit/type";
+import { ClassSchema, t } from "@deepkit/type";
 import { getBSONDecoder } from "@deepkit/bson";
 import {
   SCHEMA_STORAGE,
   SCHEMA_AGGREGATE_STORAGE,
   ALL_FIELDS,
 } from "../../constants";
-
-const BSONLeftoverSerializer = new Serializer("custom serializer");
-BSONLeftoverSerializer.toClass.register("date", (property, compiler) => {
-  compiler.addSetter(`new Date(${compiler.accessor})`);
-});
-BSONLeftoverSerializer.toClass.register("objectId", (property, compiler) => {
-  compiler.setContext({
-    ObjectId,
-  });
-  // compiler.addCodeForSetter('const ObjectId = require("mongodb").ObjectId');
-  compiler.addSetter(`new ObjectId(${compiler.accessor})`);
-});
+import { BSONLeftoverSerializer } from "./utils/BSONLeftoverSerializer";
+import { SCHEMA_BSON_OBJECT_DECODER_STORAGE } from "../../constants";
 
 export interface CollectionNodeOptions {
   collection: Collection;
@@ -202,7 +192,6 @@ export default class CollectionNode implements INode {
     filters: any;
     options: any;
     pipeline: any[];
-    decoder: Function;
   } {
     let props =
       typeof this.props === "function"
@@ -215,11 +204,19 @@ export default class CollectionNode implements INode {
       options.projection = this.blendInProjection(options.projection);
     }
 
+    if (this.linker) {
+      Object.assign(
+        filters,
+        this.linker.getHardwiredFilters({
+          filters,
+        })
+      );
+    }
+
     return {
       filters,
       options,
       pipeline,
-      decoder,
     };
   }
 
@@ -300,9 +297,63 @@ export default class CollectionNode implements INode {
   }
 
   /**
-   * Fetches the data accordingly
+   * When doing toArray we have 3 choices, if it uses pipeline that we use aggregate
+   * If it doesn't we use either find or findOne() depending on what was called on the `Query` object
+   *
+   * @param additionalFilters
+   * @param parentObject
+   * @returns
    */
   public async toArray(additionalFilters = {}, parentObject?: any) {
+    const useAggregate = !this.forceSingleResult;
+
+    if (useAggregate) {
+      return this.toArrayByAggregate(additionalFilters, parentObject);
+    } else {
+      const { filters, options } = this.getFiltersAndOptions(
+        additionalFilters,
+        parentObject
+      );
+
+      let { schema, documentDecoder, serializer } = this.getJITSchemaInfo();
+
+      let result;
+      if (schema) {
+        options.raw = true;
+      }
+      if (this.forceSingleResult) {
+        result = await this.collection.findOne(filters, options);
+        if (!result) {
+          return [];
+        }
+      } else {
+        result = await this.collection.find(filters, options).toArray();
+        if (result.length === 0) {
+          return [];
+        }
+      }
+
+      if (schema) {
+        if (this.forceSingleResult) {
+          result = serializer.deserialize(documentDecoder(result));
+        } else {
+          result = result
+            .map((r) => documentDecoder(r))
+            .map((r) => serializer.deserialize(r));
+        }
+      }
+
+      if (this.forceSingleResult) {
+        return [result];
+      } else {
+        return result;
+      }
+    }
+  }
+  /**
+   * Fetches the data accordingly
+   */
+  public async toArrayByAggregate(additionalFilters = {}, parentObject?: any) {
     const pipeline = this.getAggregationPipeline(
       additionalFilters,
       parentObject
@@ -315,24 +366,8 @@ export default class CollectionNode implements INode {
       );
     }
 
-    let results,
-      schema = this.schema,
-      decoder,
-      serializer,
-      aggregateSchema;
+    let { schema, aggregateDecoder, serializer } = this.getJITSchemaInfo();
 
-    if (schema) {
-      aggregateSchema = CollectionNode.getAggregateSchema(schema);
-      decoder = getBSONDecoder(aggregateSchema);
-      serializer = CollectionNode.getSchemaSerializer(schema);
-    } else if (schema === undefined) {
-      if (this.collection[SCHEMA_STORAGE]) {
-        schema = this.collection[SCHEMA_STORAGE];
-        aggregateSchema = this.collection[SCHEMA_AGGREGATE_STORAGE];
-        decoder = this.collection[SCHEMA_BSON_DECODER_STORAGE];
-        serializer = this.collection[SCHEMA_BSON_LEFTOVER_SERIALIZER];
-      }
-    }
     if (schema) {
       // @types/mongodb complains about `batchSize` not being a valid option, it's a false issue
       // @ts-ignore
@@ -344,37 +379,53 @@ export default class CollectionNode implements INode {
         })
         .toArray();
 
-      const result = decoder(buffers[0]);
+      const result = aggregateDecoder(buffers[0]);
       if (result.errmsg) {
         throw new Error(JSON.stringify(result));
       }
 
       const firstBatchResults = result.cursor.firstBatch;
 
-      return firstBatchResults.map((result) => serializer.deserialize(result));
+      const results = firstBatchResults.map((result) =>
+        serializer.deserialize(result)
+      );
+      return results;
     } else {
-      const now = new Date();
       // @ts-ignore
-      results = await this.collection
+      return this.collection
         .aggregate(pipeline, {
           allowDiskUse: true,
           batchSize: 1_000_000,
         })
         .toArray();
     }
+  }
 
-    if (this.explain) {
-      console.log(
-        `[${this.name}] Results:\n`,
-        JSON.stringify(results, null, 2)
-      );
+  private getJITSchemaInfo() {
+    let schema = this.schema,
+      aggregateDecoder,
+      serializer,
+      aggregateSchema,
+      documentDecoder;
+
+    if (schema) {
+      aggregateSchema = CollectionNode.getAggregateSchema(schema);
+      aggregateDecoder = getBSONDecoder(aggregateSchema);
+      documentDecoder = getBSONDecoder(schema);
+      serializer = CollectionNode.getSchemaSerializer(schema);
+    } else if (schema === undefined) {
+      // Fallback to collection schema if $schema: null isn't specified
+      if (this.collection[SCHEMA_STORAGE]) {
+        schema = this.collection[SCHEMA_STORAGE];
+        aggregateSchema = this.collection[SCHEMA_AGGREGATE_STORAGE];
+        aggregateDecoder = this.collection[
+          SCHEMA_BSON_AGGREGATE_DECODER_STORAGE
+        ];
+        documentDecoder = this.collection[SCHEMA_BSON_OBJECT_DECODER_STORAGE];
+        serializer = this.collection[SCHEMA_BSON_DOCUMENT_SERIALIZER];
+      }
     }
-
-    if (!results) {
-      return [];
-    }
-
-    return results;
+    return { schema, aggregateDecoder, serializer, documentDecoder };
   }
 
   /**
@@ -396,6 +447,17 @@ export default class CollectionNode implements INode {
     return NodeLinkType.FIELD;
   }
 
+  public getFiltersAndOptions(additionalFilters = {}, parentObject?: any) {
+    const { filters, options } = this.getPropsForQuerying(parentObject);
+
+    Object.assign(filters, additionalFilters);
+
+    return {
+      filters,
+      options,
+    };
+  }
+
   /**
    * Based on the current configuration fetches the pipeline
    */
@@ -411,14 +473,6 @@ export default class CollectionNode implements INode {
 
     const pipeline = [];
     Object.assign(filters, additionalFilters);
-    if (this.linker) {
-      Object.assign(
-        filters,
-        this.linker.getHardwiredFilters({
-          filters,
-        })
-      );
-    }
 
     if (!_.isEmpty(filters)) {
       pipeline.push({ $match: filters });
@@ -567,9 +621,11 @@ export default class CollectionNode implements INode {
           _.merge(this.body, expanderConfig);
           delete this.body[fieldName];
 
-          return this.spread(expanderConfig);
+          this.spread(expanderConfig);
+          break;
         case NodeLinkType.FIELD:
           this.addField(fieldName, fieldBody, scheduleForDeletion);
+          break;
         default:
           throw new Error(`We could not process the type: ${linkType}`);
       }
@@ -648,6 +704,8 @@ export default class CollectionNode implements INode {
         for (const result of this.results) {
           delete result[field];
         }
+      } else {
+        collectionNode.project();
       }
     });
     this.reducerNodes.forEach((reducerNode) => {
@@ -658,13 +716,6 @@ export default class CollectionNode implements INode {
         }
       }
     });
-
-    for (const key in this.body) {
-      if (this.hasCollectionNode(key)) {
-        const collectionNode = this.getCollectionNode(key);
-        collectionNode.project();
-      }
-    }
 
     if (this.queryAllFields) {
       return;
@@ -701,5 +752,9 @@ export default class CollectionNode implements INode {
         nextBatch: t.array(t.partial(resultSchema)),
       },
     });
+  }
+
+  protected hasPipeline() {
+    return this.props.pipeline && this.props.pipeline.length > 0;
   }
 }

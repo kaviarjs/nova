@@ -11,6 +11,7 @@ async function run() {
   }
   await testSuite(createSuites(), {
     runSanityChecks: false,
+    warmup: 100,
   });
   process.exit(0);
 }

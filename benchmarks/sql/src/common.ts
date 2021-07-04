@@ -44,6 +44,7 @@ export async function testSuite(
   options: {
     runSanityChecks?: boolean;
     times?: number;
+    warmup?: number;
   } = {}
 ) {
   const onlySuites = suites.filter((suite) => suite.only === true);
@@ -76,10 +77,11 @@ export async function testRunner(
   options: {
     runSanityChecks?: boolean;
     times?: number;
+    warmup?: number;
   } = {}
 ): Promise<ITestResult> {
   options = Object.assign(
-    { runSanityChecks: true, times: TEST_ITERATIONS },
+    { runSanityChecks: true, times: TEST_ITERATIONS, warmup: 0 },
     options
   );
 
@@ -87,6 +89,10 @@ export async function testRunner(
   let slowest = 0;
   let firstRun = 0;
   let fastest = Infinity;
+
+  for (let i = 0; i < options.warmup; i++) {
+    await suite.run();
+  }
 
   for (let i = 0; i < options.times; i++) {
     const startTime = performance.now();

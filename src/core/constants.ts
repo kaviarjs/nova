@@ -4,9 +4,14 @@ export const LINK_STORAGE = Symbol("linkStorage");
 export const REDUCER_STORAGE = Symbol("reducerStorage");
 export const SCHEMA_STORAGE = Symbol("schemaStorage");
 export const SCHEMA_AGGREGATE_STORAGE = Symbol("schemaAggregateStorage");
-export const SCHEMA_BSON_DECODER_STORAGE = Symbol("schemaBsonDecoderStorage");
-export const SCHEMA_BSON_LEFTOVER_SERIALIZER = Symbol(
-  "schemaBsonLeftoverSerializerStorage"
+export const SCHEMA_BSON_AGGREGATE_DECODER_STORAGE = Symbol(
+  "schemaBsonAggregateDecoderStorage"
+);
+export const SCHEMA_BSON_OBJECT_DECODER_STORAGE = Symbol(
+  "schemaBsonObjectDecoderStorage"
+);
+export const SCHEMA_BSON_DOCUMENT_SERIALIZER = Symbol(
+  "schemaBsonDocuemtnerializerStorage"
 );
 export const EXPANDER_STORAGE = Symbol("expandersStorage");
 export const SPECIAL_PARAM_FIELD = "$";

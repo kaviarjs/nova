@@ -78,4 +78,8 @@ export default class ReducerNode implements INode {
       Object.assign(projection, this.projection);
     }
   }
+
+  get hasPipeline() {
+    return this.pipeline && this.pipeline.length > 0;
+  }
 }
