@@ -14,6 +14,7 @@
     "start": "nodemon dist/index.js",
     "benchmark:nova": "ts-node src/nova/index.ts",
     "benchmark:sql": "ts-node src/sql/index.ts",
+    "benchmark:playground": "ts-node src/playground/index.ts",
     "benchmark:sql:raw": "ts-node src/sql/index.raw.ts",
     "benchmark:mongoose": "ts-node src/mongoose/index.ts",
     "test": "jest --verbose dist/__tests__/index.js",

@@ -41,6 +41,32 @@ export const suites: ITestSuite[] = [
     },
   },
   {
+    name: "Full Database Dump - Users (no projection)",
+    async run() {
+      return await query(db.Users, {
+        $all: true,
+        groups: {
+          $all: true,
+        },
+        posts: {
+          $all: true,
+          category: {
+            $all: true,
+          },
+          tags: {
+            $all: true,
+          },
+          comments: {
+            $all: true,
+            user: {
+              $all: true,
+            },
+          },
+        },
+      }).toArray();
+    },
+  },
+  {
     name: "Users with groups",
     async run() {
       return await query(db.Users, {

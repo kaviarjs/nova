@@ -5,8 +5,8 @@ import {
   SPECIAL_PARAM_FIELD,
   ALIAS_FIELD,
   SCHEMA_FIELD,
-  SCHEMA_BSON_DECODER_STORAGE,
-  SCHEMA_BSON_LEFTOVER_SERIALIZER,
+  SCHEMA_BSON_AGGREGATE_DECODER_STORAGE,
+  SCHEMA_BSON_DOCUMENT_SERIALIZER,
 } from "../../constants";
 import {
   QueryBodyType,
@@ -26,21 +26,15 @@ import { INode } from "./INode";
 import FieldNode from "./FieldNode";
 import ReducerNode from "./ReducerNode";
 import { Collection, ObjectId } from "mongodb";
-import { ClassSchema, t, Serializer } from "@deepkit/type";
+import { ClassSchema, t } from "@deepkit/type";
 import { getBSONDecoder } from "@deepkit/bson";
-import { SCHEMA_STORAGE, SCHEMA_AGGREGATE_STORAGE } from "../../constants";
-
-const BSONLeftoverSerializer = new Serializer("custom serializer");
-BSONLeftoverSerializer.toClass.register("date", (property, compiler) => {
-  compiler.addSetter(`new Date(${compiler.accessor})`);
-});
-BSONLeftoverSerializer.toClass.register("objectId", (property, compiler) => {
-  compiler.setContext({
-    ObjectId,
-  });
-  // compiler.addCodeForSetter('const ObjectId = require("mongodb").ObjectId');
-  compiler.addSetter(`new ObjectId(${compiler.accessor})`);
-});
+import {
+  SCHEMA_STORAGE,
+  SCHEMA_AGGREGATE_STORAGE,
+  ALL_FIELDS,
+} from "../../constants";
+import { BSONLeftoverSerializer } from "./utils/BSONLeftoverSerializer";
+import { SCHEMA_BSON_OBJECT_DECODER_STORAGE } from "../../constants";
 
 export interface CollectionNodeOptions {
   collection: Collection;
@@ -65,6 +59,7 @@ export default class CollectionNode implements INode {
   public parent: CollectionNode;
   public alias: string;
   public schema: ClassSchema;
+  public scheduledForDeletion: boolean = false;
 
   public nodes: INode[] = [];
   public props: any; // TODO: refator to: ValueOrValueResolver<ICollectionQueryConfig>
@@ -76,6 +71,11 @@ export default class CollectionNode implements INode {
    * When doing .fetchOne() from the Query and forgetting about hard-coding a limit, we should put that limit ourselves to avoid accidentally large queries
    */
   public forceSingleResult: boolean = false;
+
+  /**
+   * Whether to just dump the fields without a projection
+   */
+  public queryAllFields: boolean = false;
 
   /**
    * When this is true, we are explaining the pipeline, and the given results
@@ -105,11 +105,13 @@ export default class CollectionNode implements INode {
     this.props = body[SPECIAL_PARAM_FIELD] || {};
     this.alias = body[ALIAS_FIELD];
     this.schema = body[SCHEMA_FIELD];
+    this.queryAllFields = Boolean(body[ALL_FIELDS]);
 
     this.body = _.cloneDeep(body);
     delete this.body[SPECIAL_PARAM_FIELD];
     delete this.body[ALIAS_FIELD];
     delete this.body[SCHEMA_FIELD];
+    delete this.body[ALL_FIELDS];
 
     this.explain = explain;
     this.name = name;
@@ -136,9 +138,9 @@ export default class CollectionNode implements INode {
     this.isOneResult = linker.isOneResult();
     this.linkStorageField = linker.linkStorageField;
     if (this.isVirtual) {
-      this.addField(this.linkStorageField, {});
+      this.addField(this.linkStorageField, {}, true);
     } else {
-      parent.addField(this.linkStorageField, {});
+      parent.addField(this.linkStorageField, {}, true);
     }
   }
 
@@ -190,7 +192,6 @@ export default class CollectionNode implements INode {
     filters: any;
     options: any;
     pipeline: any[];
-    decoder: Function;
   } {
     let props =
       typeof this.props === "function"
@@ -199,13 +200,23 @@ export default class CollectionNode implements INode {
 
     let { filters = {}, options = {}, pipeline = [], decoder } = props;
 
-    options.projection = this.blendInProjection(options.projection);
+    if (!this.queryAllFields) {
+      options.projection = this.blendInProjection(options.projection);
+    }
+
+    if (this.linker) {
+      Object.assign(
+        filters,
+        this.linker.getHardwiredFilters({
+          filters,
+        })
+      );
+    }
 
     return {
       filters,
       options,
       pipeline,
-      decoder,
     };
   }
 
@@ -301,24 +312,8 @@ export default class CollectionNode implements INode {
       );
     }
 
-    let results,
-      schema = this.schema,
-      decoder,
-      serializer,
-      aggregateSchema;
+    let { schema, aggregateDecoder, serializer } = this.getJITSchemaInfo();
 
-    if (schema) {
-      aggregateSchema = CollectionNode.getAggregateSchema(schema);
-      decoder = getBSONDecoder(aggregateSchema);
-      serializer = CollectionNode.getSchemaSerializer(schema);
-    } else if (schema === undefined) {
-      if (this.collection[SCHEMA_STORAGE]) {
-        schema = this.collection[SCHEMA_STORAGE];
-        aggregateSchema = this.collection[SCHEMA_AGGREGATE_STORAGE];
-        decoder = this.collection[SCHEMA_BSON_DECODER_STORAGE];
-        serializer = this.collection[SCHEMA_BSON_LEFTOVER_SERIALIZER];
-      }
-    }
     if (schema) {
       // @types/mongodb complains about `batchSize` not being a valid option, it's a false issue
       // @ts-ignore
@@ -330,34 +325,53 @@ export default class CollectionNode implements INode {
         })
         .toArray();
 
-      const result = decoder(buffers[0]);
+      const result = aggregateDecoder(buffers[0]);
       if (result.errmsg) {
         throw new Error(JSON.stringify(result));
       }
 
       const firstBatchResults = result.cursor.firstBatch;
 
-      return firstBatchResults.map((result) => serializer.deserialize(result));
+      const results = firstBatchResults.map((result) =>
+        serializer.deserialize(result)
+      );
+      return results;
     } else {
-      results = await this.collection
+      // @ts-ignore
+      return this.collection
         .aggregate(pipeline, {
           allowDiskUse: true,
+          batchSize: 1_000_000,
         })
         .toArray();
     }
+  }
 
-    if (this.explain) {
-      console.log(
-        `[${this.name}] Results:\n`,
-        JSON.stringify(results, null, 2)
-      );
+  private getJITSchemaInfo() {
+    let schema = this.schema,
+      aggregateDecoder,
+      serializer,
+      aggregateSchema,
+      documentDecoder;
+
+    if (schema) {
+      aggregateSchema = CollectionNode.getAggregateSchema(schema);
+      aggregateDecoder = getBSONDecoder(aggregateSchema);
+      documentDecoder = getBSONDecoder(schema);
+      serializer = CollectionNode.getSchemaSerializer(schema);
+    } else if (schema === undefined) {
+      // Fallback to collection schema if $schema: null isn't specified
+      if (this.collection[SCHEMA_STORAGE]) {
+        schema = this.collection[SCHEMA_STORAGE];
+        aggregateSchema = this.collection[SCHEMA_AGGREGATE_STORAGE];
+        aggregateDecoder = this.collection[
+          SCHEMA_BSON_AGGREGATE_DECODER_STORAGE
+        ];
+        documentDecoder = this.collection[SCHEMA_BSON_OBJECT_DECODER_STORAGE];
+        serializer = this.collection[SCHEMA_BSON_DOCUMENT_SERIALIZER];
+      }
     }
-
-    if (!results) {
-      return [];
-    }
-
-    return results;
+    return { schema, aggregateDecoder, serializer, documentDecoder };
   }
 
   /**
@@ -379,6 +393,17 @@ export default class CollectionNode implements INode {
     return NodeLinkType.FIELD;
   }
 
+  public getFiltersAndOptions(additionalFilters = {}, parentObject?: any) {
+    const { filters, options } = this.getPropsForQuerying(parentObject);
+
+    Object.assign(filters, additionalFilters);
+
+    return {
+      filters,
+      options,
+    };
+  }
+
   /**
    * Based on the current configuration fetches the pipeline
    */
@@ -394,14 +419,6 @@ export default class CollectionNode implements INode {
 
     const pipeline = [];
     Object.assign(filters, additionalFilters);
-    if (this.linker) {
-      Object.assign(
-        filters,
-        this.linker.getHardwiredFilters({
-          filters,
-        })
-      );
-    }
 
     if (!_.isEmpty(filters)) {
       pipeline.push({ $match: filters });
@@ -451,62 +468,97 @@ export default class CollectionNode implements INode {
   /**
    * This function creates the children properly for my root.
    */
-  private spread(body: QuerySubBodyType, fromReducerNode?: ReducerNode) {
+  protected spread(
+    body: QuerySubBodyType,
+    fromReducerNode?: ReducerNode,
+    scheduleForDeletion?: boolean
+  ) {
     _.forEach(body, (fieldBody, fieldName) => {
       if (!fieldBody) {
         return;
       }
 
-      if (fieldName === SPECIAL_PARAM_FIELD || fieldName === SCHEMA_FIELD) {
+      if (
+        fieldName === SPECIAL_PARAM_FIELD ||
+        fieldName === SCHEMA_FIELD ||
+        fieldName === ALL_FIELDS
+      ) {
         return;
       }
 
       let alias = fieldName;
       if (fieldBody[ALIAS_FIELD]) {
         alias = fieldBody[ALIAS_FIELD];
+        delete fieldBody[ALIAS_FIELD];
       }
 
       const linkType = this.getLinkingType(alias);
 
-      let childNode: INode;
+      scheduleForDeletion = fromReducerNode
+        ? true
+        : Boolean(scheduleForDeletion);
 
       switch (linkType) {
         case NodeLinkType.COLLECTION:
           if (this.hasCollectionNode(alias)) {
-            this.getCollectionNode(alias).spread(fieldBody as QueryBodyType);
-            return;
+            this.getCollectionNode(alias).spread(
+              fieldBody as QueryBodyType,
+              null,
+              scheduleForDeletion
+            );
+          } else {
+            const linker = this.getLinker(alias);
+
+            const collectionNode = new CollectionNode(
+              {
+                body: fieldBody as QueryBodyType,
+                collection: linker.getLinkedCollection(),
+                linker,
+                name: fieldName,
+                parent: this,
+              },
+              this.context
+            );
+
+            collectionNode.scheduledForDeletion = scheduleForDeletion;
+
+            this.nodes.push(collectionNode);
           }
 
-          const linker = this.getLinker(alias);
-
-          childNode = new CollectionNode(
-            {
-              body: fieldBody as QueryBodyType,
-              collection: linker.getLinkedCollection(),
-              linker,
-              name: fieldName,
-              parent: this,
-            },
-            this.context
-          );
           break;
         case NodeLinkType.REDUCER:
-          const reducerConfig = this.getReducerConfig(fieldName);
+          if (!this.hasReducerNode(fieldName)) {
+            const reducerConfig = this.getReducerConfig(fieldName);
 
-          childNode = new ReducerNode(
-            fieldName,
-            {
-              body: fieldBody as QueryBodyType,
-              ...reducerConfig,
-            },
-            this.context
-          );
+            const reducerNode = new ReducerNode(
+              fieldName,
+              {
+                body: fieldBody as QueryBodyType,
+                ...reducerConfig,
+              },
+              this.context
+            );
+            reducerNode.scheduledForDeletion = scheduleForDeletion;
 
-          /**
-           * This scenario is when a reducer is using another reducer
-           */
-          if (fromReducerNode) {
-            fromReducerNode.dependencies.push(childNode);
+            /**
+             * This scenario is when a reducer is using another reducer
+             */
+            if (fromReducerNode) {
+              fromReducerNode.dependencies.push(reducerNode);
+            }
+
+            this.nodes.push(reducerNode);
+          } else {
+            // The logic here is that if we specify a reducer in the body, and other reducer depends on it
+            // When we spread the body of that other reducer we also need to add it to its deps
+            if (fromReducerNode) {
+              const reducerNode = this.getReducerNode(fieldName);
+              if (
+                !fromReducerNode.dependencies.find((n) => n === reducerNode)
+              ) {
+                fromReducerNode.dependencies.push(reducerNode);
+              }
+            }
           }
 
           break;
@@ -515,19 +567,18 @@ export default class CollectionNode implements INode {
           _.merge(this.body, expanderConfig);
           delete this.body[fieldName];
 
-          return this.spread(expanderConfig);
+          this.spread(expanderConfig);
+          break;
         case NodeLinkType.FIELD:
-          this.addField(fieldName, fieldBody);
-          return;
-      }
-
-      if (childNode) {
-        this.nodes.push(childNode);
+          this.addField(fieldName, fieldBody, scheduleForDeletion);
+          break;
+        default:
+          throw new Error(`We could not process the type: ${linkType}`);
       }
     });
 
     // If by the end of parsing the body, we have no fields, we add one regardless
-    if (this.fieldNodes.length === 0) {
+    if (this.fieldNodes.length === 0 && !this.queryAllFields) {
       const fieldNode = new FieldNode("_id", {});
       this.nodes.push(fieldNode);
     }
@@ -539,8 +590,13 @@ export default class CollectionNode implements INode {
    *
    * @param fieldName
    * @param body
+   * @param scheduleForDeletion
    */
-  private addField(fieldName: string, body) {
+  protected addField(fieldName: string, body, scheduleForDeletion = false) {
+    if (this.queryAllFields) {
+      return;
+    }
+
     if (fieldName.indexOf(".") > -1) {
       // transform 'profile.firstName': body => { "profile" : { "firstName": body } }
       const newBody = dot.object({ [fieldName]: body });
@@ -550,18 +606,27 @@ export default class CollectionNode implements INode {
 
     if (!this.hasField(fieldName)) {
       const fieldNode = new FieldNode(fieldName, body);
+      fieldNode.scheduledForDeletion = scheduleForDeletion;
 
       this.nodes.push(fieldNode);
     } else {
       // In case it contains some sub fields
       const fieldNode = this.getFirstLevelField(fieldName);
+
+      if (
+        scheduleForDeletion === false &&
+        fieldNode.scheduledForDeletion === true
+      ) {
+        fieldNode.scheduledForDeletion = false;
+      }
+
       if (FieldNode.canBodyRepresentAField(body)) {
         if (fieldNode.subfields.length > 0) {
           // We override it, so we include everything
           fieldNode.subfields = [];
         }
       } else {
-        fieldNode.spread(body);
+        fieldNode.spread(body, scheduleForDeletion);
       }
     }
   }
@@ -571,14 +636,56 @@ export default class CollectionNode implements INode {
       .filter((node) => !node.isSpread)
       .forEach((reducerNode) => {
         reducerNode.isSpread = true;
-        this.spread(reducerNode.dependency, reducerNode);
+        this.spread(reducerNode.dependency, reducerNode, true);
       });
   }
 
+  /**
+   * After all data has been cleared up whe begin projection so the dataset is what matches the request body
+   */
+  public project() {
+    this.collectionNodes.forEach((collectionNode) => {
+      if (collectionNode.scheduledForDeletion) {
+        const field = collectionNode.name;
+        for (const result of this.results) {
+          delete result[field];
+        }
+      } else {
+        collectionNode.project();
+      }
+    });
+    this.reducerNodes.forEach((reducerNode) => {
+      if (reducerNode.scheduledForDeletion) {
+        const field = reducerNode.name;
+        for (const result of this.results) {
+          delete result[field];
+        }
+      }
+    });
+
+    if (this.queryAllFields) {
+      return;
+    }
+
+    for (const field of this.fieldNodes) {
+      field.project(this.results);
+    }
+  }
+
+  /**
+   * Returns the BSON serializer for the schema
+   * @param resultSchema
+   * @returns
+   */
   public static getSchemaSerializer(resultSchema: ClassSchema) {
     return BSONLeftoverSerializer.for(resultSchema);
   }
 
+  /**
+   * Returns the schema for the response of an aggregate
+   * @param resultSchema
+   * @returns
+   */
   public static getAggregateSchema(resultSchema: ClassSchema) {
     return t.schema({
       ok: t.number,
@@ -591,5 +698,9 @@ export default class CollectionNode implements INode {
         nextBatch: t.array(t.partial(resultSchema)),
       },
     });
+  }
+
+  protected hasPipeline() {
+    return this.props.pipeline && this.props.pipeline.length > 0;
   }
 }

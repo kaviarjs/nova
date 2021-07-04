@@ -902,7 +902,11 @@ const Query = {
 
 ## High Performance Queries
 
-We can benefit of extreme rapid BSON decoding through JIT compilers as long as we know not only the fields, but their type too. This is done with the help of [@deepkit/bson](https://github.com/deepkit/deepkit-framework/tree/master/packages/bson) and [@deepkit/type](https://deepkit.io/documentation/type).
+Deeper queries are run in parallel, make sure you have a connection `poolSize` of 10. This can be configured when creating your `MongoClient`. A larger `poolSize` might increase performance, but it can also decrease it.
+
+If you have a lot of nested fields, you also have the `$all: true` field at your disposal, sending out a large projection to MongoDB can sometimes make it slower than getting all the data. If you specify any collection fields and `$all: true`, all fields will be fetched, but your result will still be projected in the final result of the query.
+
+We can also benefit of extreme rapid BSON decoding through JIT compilers as long as we know not only the fields, but their type too. This is done with the help of [@deepkit/bson](https://github.com/deepkit/deepkit-framework/tree/master/packages/bson) and [@deepkit/type](https://deepkit.io/documentation/type).
 
 ```ts
 import { t, query } from "@kaviar/nova"; // t is from "deepkit/type" package
@@ -927,7 +931,7 @@ query(Posts, {
 });
 ```
 
-You also have the option to `addSchema` directly to the collections itself, removing the necessity of having to specify `$schema`:
+We recommend using the `addSchema` directly to the collections itself, removing the necessity of having to specify `$schema`:
 
 ```ts
 import { t, addSchema } from "@kaviar/nova"; // t is from "deepkit/type" package
@@ -937,6 +941,9 @@ addSchema(
   t.schema({
     text: t.string,
     createdAt: t.date,
+    userId: t.mongoId,
+    tagsIds: t.array(t.mongoId),
+    // these are just the fields, no reducers nor collections should be defined here
   })
 );
 

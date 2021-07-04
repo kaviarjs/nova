@@ -16,7 +16,7 @@ export default async function applyReducers(root: CollectionNode) {
     // If this reducer depends on other reducers
     if (reducerNode.dependencies.length) {
       // If there is an unprocessed reducer, move it at the end of the queue
-      const allDependenciesComputed = _.every(reducerNode.dependencies, dep =>
+      const allDependenciesComputed = _.every(reducerNode.dependencies, (dep) =>
         processedReducers.includes(dep)
       );
       if (allDependenciesComputed) {

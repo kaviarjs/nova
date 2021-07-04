@@ -11,6 +11,7 @@ import {
 import { client } from "../connection";
 import { Collection } from "mongodb";
 import { ClassSchema, getClassSchema, t } from "@deepkit/type";
+import { addSchema } from "../../core/api";
 import {
   getBSONDecoder,
   getRawBSONDecoder,
@@ -775,6 +776,46 @@ describe("Main tests", function () {
     assert.isUndefined(result.inversedName);
   });
 
+  it("[Reducers] Should not clean dependency reducer if specified in body", async () => {
+    addReducers(A, {
+      fullName: {
+        dependency: {
+          inversedName: 1,
+        },
+        reduce(obj, params) {
+          return `prefix ${obj.inversedName}`;
+        },
+      },
+      inversedName: {
+        dependency: {
+          profile: {
+            firstName: 1,
+          },
+        },
+        reduce(obj) {
+          return `inversed ${obj.profile.firstName}`;
+        },
+      },
+    });
+
+    const a1 = await A.insertOne({
+      profile: {
+        firstName: "Aloha",
+        lastName: "b",
+        number: 500,
+      },
+    });
+
+    const result: any = await query(A, {
+      _id: 1,
+      fullName: 1,
+      inversedName: 1,
+    }).fetchOne();
+
+    assert.equal(`prefix inversed Aloha`, result.fullName);
+    assert.isString(result.inversedName);
+  });
+
   it("[Reducers] Should work with reducer parameters", async () => {
     addReducers(A, {
       fullName: {
@@ -1229,7 +1270,7 @@ describe("Main tests", function () {
     assert.equal(post.comments[4].number, 8);
   });
 
-  it("Should work with custom data decoders", async () => {
+  it("Should work with custom data decoders at $schema level", async () => {
     manyToMany(A, B, {
       linkName: "bs",
     });
@@ -1280,5 +1321,91 @@ describe("Main tests", function () {
       assert.isArray(b.tags);
       assert.instanceOf(b.date, Date);
     });
+  });
+
+  it("Should work with custom data decoders at collection level", async () => {
+    manyToMany(A, B, {
+      linkName: "bs",
+    });
+
+    const rest = {
+      date: new Date(),
+      isOk: true,
+      tags: [1, 2, 3],
+    };
+
+    const b1 = await B.insertOne({
+      number: 200,
+      ...rest,
+    });
+    const b2 = await B.insertOne({ number: 300, ...rest });
+    const b3 = await B.insertOne({ number: 500, ...rest });
+
+    await A.insertOne({
+      number: 100,
+      bsIds: [b1, b2, b3].map((b) => b.insertedId),
+    });
+
+    const resultSchema = t.schema({
+      _id: t.mongoId,
+      date: t.date,
+      isOk: t.boolean,
+      number: t.number,
+      tags: t.array(t.number),
+    });
+
+    addSchema(B, resultSchema);
+
+    let result = await query(A, {
+      bs: {
+        _id: 1,
+        number: 1,
+        isOk: 1,
+        date: 1,
+        tags: 1,
+      },
+    }).fetchOne();
+
+    assert.isUndefined(result.bIds);
+    assert.isArray(result.bs);
+    assert.lengthOf(result.bs, 3);
+    result.bs.forEach((b) => {
+      assert.isNumber(b.number);
+      assert.isBoolean(b.isOk);
+      assert.isArray(b.tags);
+      assert.instanceOf(b.date, Date);
+    });
+  });
+
+  it("should work with $all", async () => {
+    manyToOne(A, B, {
+      linkName: "b",
+      inversedLinkName: "a",
+    });
+
+    const b = await B.insertOne({
+      name: "John",
+      age: 20,
+    });
+
+    const a = await A.insertOne({
+      bId: b.insertedId,
+      number: 200,
+      divsion: 3,
+    });
+
+    const result = await query(B, {
+      $all: true,
+      a: {
+        $all: true,
+      },
+    }).fetchOne();
+
+    assert.isObject(result);
+    assert.isString(result.name);
+    assert.isNumber(result.age);
+    assert.isArray(result.a);
+    assert.isNumber(result.a[0].number);
+    assert.isDefined(result.a[0].bId);
   });
 });

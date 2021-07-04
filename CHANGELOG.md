@@ -1,5 +1,12 @@
 # Change Log
 
+## 1.8.0
+
+- Added concurrent request mechanisms for deeper queries in hypernova
+- Improved projection by marking fields for deletion, thus improving memory consumption and processing speed
+- Introduced `$all: true` special field, which gets all the fields and does no projection
+- Added opt-in for fetchOne to use `findOne()` from MongoDB Collection as it is faster than aggregate with `limit: 1`
+
 ## 1.7.0
 
 - Added high-performance query-ing via JIT BSON decoding techniques

@@ -1,13 +1,12 @@
 import * as _ from "lodash";
 import applyReducers from "./computeReducers";
 import CollectionNode from "../nodes/CollectionNode";
-import projectGraphToDataSet from "./projectGraphToDataSet";
 
-export default async (node) => {
+export default async (node: CollectionNode) => {
   storeOneResults(node, node.results);
   await applyReducers(node);
 
-  node.results = projectGraphToDataSet(node.body, node.results);
+  node.project();
 };
 
 export function storeOneResults(node: CollectionNode, sameLevelResults: any[]) {
@@ -15,24 +14,24 @@ export function storeOneResults(node: CollectionNode, sameLevelResults: any[]) {
     return;
   }
 
-  node.collectionNodes.forEach((collectionNode) => {
-    _.forEach(sameLevelResults, (result) => {
+  node.collectionNodes.forEach((childCollectionNode) => {
+    sameLevelResults.forEach((result) => {
       // The reason we are doing this is that if the requested link does not exist
       // It will fail when we try to get undefined[something] below
       if (result !== undefined) {
-        storeOneResults(collectionNode, result[collectionNode.name]);
+        storeOneResults(childCollectionNode, result[childCollectionNode.name]);
       }
     });
 
-    if (collectionNode.isOneResult) {
-      _.forEach(sameLevelResults, (result) => {
+    if (childCollectionNode.isOneResult) {
+      sameLevelResults.forEach((result) => {
         if (
-          result[collectionNode.name] &&
-          _.isArray(result[collectionNode.name])
+          result[childCollectionNode.name] &&
+          Array.isArray(result[childCollectionNode.name])
         ) {
-          result[collectionNode.name] =
-            result[collectionNode.name].length > 0
-              ? _.first(result[collectionNode.name])
+          result[childCollectionNode.name] =
+            result[childCollectionNode.name].length > 0
+              ? _.first(result[childCollectionNode.name])
               : null;
         }
       });

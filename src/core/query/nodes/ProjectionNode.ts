@@ -2,6 +2,11 @@ import * as _ from "lodash";
 import FieldNode from "./FieldNode";
 import { SPECIAL_FIELDS } from "../../constants";
 
+/**
+ * This class was used to do field projection on the result set
+ * This might be useful in the future for other use-cases
+ * @deprecated
+ */
 export default class ProjectionNode {
   public name: string;
   public body: any;
@@ -32,11 +37,11 @@ export default class ProjectionNode {
     }
 
     if (_.isArray(object)) {
-      return object.map(subobject => this.project(subobject));
+      return object.map((subobject) => this.project(subobject));
     }
 
     const newObject = {};
-    this.nodes.forEach(node => {
+    this.nodes.forEach((node) => {
       newObject[node.name] = node.isLeaf
         ? object[node.name]
         : node.project(object[node.name]);
