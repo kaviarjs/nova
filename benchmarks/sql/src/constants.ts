@@ -1,4 +1,4 @@
-export const RUN_FIXTURES = true;
+export const RUN_FIXTURES = false;
 export const TEST_ITERATIONS = 200;
 export const USERS_COUNT = 10;
 export const POST_PER_USER = 20;

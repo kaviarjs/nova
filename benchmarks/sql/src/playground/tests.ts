@@ -56,6 +56,7 @@ export function createSuites(): ITestSuite[] {
   return [
     {
       name: "Test Fetching Bigger Model (Nova)",
+      // only: true,
       async run() {
         return await query(db.UserGameStats, {
           $all: true,

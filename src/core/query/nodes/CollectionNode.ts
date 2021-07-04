@@ -570,7 +570,8 @@ export default class CollectionNode implements INode {
           return this.spread(expanderConfig);
         case NodeLinkType.FIELD:
           this.addField(fieldName, fieldBody, scheduleForDeletion);
-          return;
+        default:
+          throw new Error(`We could not process the type: ${linkType}`);
       }
     });
 
@@ -589,7 +590,11 @@ export default class CollectionNode implements INode {
    * @param body
    * @param scheduleForDeletion
    */
-  private addField(fieldName: string, body, scheduleForDeletion = false) {
+  protected addField(fieldName: string, body, scheduleForDeletion = false) {
+    if (this.queryAllFields) {
+      return;
+    }
+
     if (fieldName.indexOf(".") > -1) {
       // transform 'profile.firstName': body => { "profile" : { "firstName": body } }
       const newBody = dot.object({ [fieldName]: body });
@@ -670,10 +675,20 @@ export default class CollectionNode implements INode {
     }
   }
 
+  /**
+   * Returns the BSON serializer for the schema
+   * @param resultSchema
+   * @returns
+   */
   public static getSchemaSerializer(resultSchema: ClassSchema) {
     return BSONLeftoverSerializer.for(resultSchema);
   }
 
+  /**
+   * Returns the schema for the response of an aggregate
+   * @param resultSchema
+   * @returns
+   */
   public static getAggregateSchema(resultSchema: ClassSchema) {
     return t.schema({
       ok: t.number,

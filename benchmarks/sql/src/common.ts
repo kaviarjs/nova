@@ -1,7 +1,7 @@
 import { v4 as uuid } from "uuid";
 import { sanity } from "./sanity";
 import { COMMENT_TEXT, TEST_ITERATIONS, POST_DESCRIPTION } from "./constants";
-
+import { PerformanceObserver, performance } from "perf_hooks";
 export function createRandomPost(index) {
   return {
     title: `Post - ${index}`,
@@ -56,8 +56,17 @@ export async function testSuite(
     const result = await testRunner(suite, options);
     console.log(suite.name);
     console.log(
-      `fastest: ${result.fastest}ms | slowest: ${result.slowest}ms | mean: ${result.mean}ms | firstRun: ${result.firstRun}ms | iterations: ${result.iterations}`
+      `fastest: ${result.fastest.toFixed(
+        4
+      )}ms | slowest: ${result.slowest.toFixed(
+        4
+      )}ms | mean: ${result.mean.toFixed(
+        4
+      )}ms | firstRun: ${result.firstRun.toFixed(4)}ms | iterations: ${
+        result.iterations
+      }`
     );
+    console.log("--");
   }
   console.log("✓ Done");
 }
@@ -80,10 +89,10 @@ export async function testRunner(
   let fastest = Infinity;
 
   for (let i = 0; i < options.times; i++) {
-    const now = new Date();
+    const startTime = performance.now();
     const result = await suite.run();
 
-    const timeElapsed = new Date().getTime() - now.getTime();
+    const timeElapsed = performance.now() - startTime;
     if (timeElapsed > slowest) {
       slowest = timeElapsed;
     }
