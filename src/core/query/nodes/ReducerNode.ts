@@ -19,7 +19,9 @@ export default class ReducerNode implements INode {
   public dependency: QueryBodyType;
 
   // This is a list of reducer nodes this uses
-  public dependencies: any = [];
+  public dependencies: ReducerNode[] = [];
+
+  public scheduledForDeletion: boolean = false;
 
   constructor(
     name,

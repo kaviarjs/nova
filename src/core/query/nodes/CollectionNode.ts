@@ -69,6 +69,7 @@ export default class CollectionNode implements INode {
   public parent: CollectionNode;
   public alias: string;
   public schema: ClassSchema;
+  public scheduledForDeletion: boolean = false;
 
   public nodes: INode[] = [];
   public props: any; // TODO: refator to: ValueOrValueResolver<ICollectionQueryConfig>
@@ -147,9 +148,9 @@ export default class CollectionNode implements INode {
     this.isOneResult = linker.isOneResult();
     this.linkStorageField = linker.linkStorageField;
     if (this.isVirtual) {
-      this.addField(this.linkStorageField, {});
+      this.addField(this.linkStorageField, {}, true);
     } else {
-      parent.addField(this.linkStorageField, {});
+      parent.addField(this.linkStorageField, {}, true);
     }
   }
 
@@ -467,62 +468,97 @@ export default class CollectionNode implements INode {
   /**
    * This function creates the children properly for my root.
    */
-  private spread(body: QuerySubBodyType, fromReducerNode?: ReducerNode) {
+  protected spread(
+    body: QuerySubBodyType,
+    fromReducerNode?: ReducerNode,
+    scheduleForDeletion?: boolean
+  ) {
     _.forEach(body, (fieldBody, fieldName) => {
       if (!fieldBody) {
         return;
       }
 
-      if (fieldName === SPECIAL_PARAM_FIELD || fieldName === SCHEMA_FIELD) {
+      if (
+        fieldName === SPECIAL_PARAM_FIELD ||
+        fieldName === SCHEMA_FIELD ||
+        fieldName === ALL_FIELDS
+      ) {
         return;
       }
 
       let alias = fieldName;
       if (fieldBody[ALIAS_FIELD]) {
         alias = fieldBody[ALIAS_FIELD];
+        delete fieldBody[ALIAS_FIELD];
       }
 
       const linkType = this.getLinkingType(alias);
 
-      let childNode: INode;
+      scheduleForDeletion = fromReducerNode
+        ? true
+        : Boolean(scheduleForDeletion);
 
       switch (linkType) {
         case NodeLinkType.COLLECTION:
           if (this.hasCollectionNode(alias)) {
-            this.getCollectionNode(alias).spread(fieldBody as QueryBodyType);
-            return;
+            this.getCollectionNode(alias).spread(
+              fieldBody as QueryBodyType,
+              null,
+              scheduleForDeletion
+            );
+          } else {
+            const linker = this.getLinker(alias);
+
+            const collectionNode = new CollectionNode(
+              {
+                body: fieldBody as QueryBodyType,
+                collection: linker.getLinkedCollection(),
+                linker,
+                name: fieldName,
+                parent: this,
+              },
+              this.context
+            );
+
+            collectionNode.scheduledForDeletion = scheduleForDeletion;
+
+            this.nodes.push(collectionNode);
           }
 
-          const linker = this.getLinker(alias);
-
-          childNode = new CollectionNode(
-            {
-              body: fieldBody as QueryBodyType,
-              collection: linker.getLinkedCollection(),
-              linker,
-              name: fieldName,
-              parent: this,
-            },
-            this.context
-          );
           break;
         case NodeLinkType.REDUCER:
-          const reducerConfig = this.getReducerConfig(fieldName);
+          if (!this.hasReducerNode(fieldName)) {
+            const reducerConfig = this.getReducerConfig(fieldName);
 
-          childNode = new ReducerNode(
-            fieldName,
-            {
-              body: fieldBody as QueryBodyType,
-              ...reducerConfig,
-            },
-            this.context
-          );
+            const reducerNode = new ReducerNode(
+              fieldName,
+              {
+                body: fieldBody as QueryBodyType,
+                ...reducerConfig,
+              },
+              this.context
+            );
+            reducerNode.scheduledForDeletion = scheduleForDeletion;
 
-          /**
-           * This scenario is when a reducer is using another reducer
-           */
-          if (fromReducerNode) {
-            fromReducerNode.dependencies.push(childNode);
+            /**
+             * This scenario is when a reducer is using another reducer
+             */
+            if (fromReducerNode) {
+              fromReducerNode.dependencies.push(reducerNode);
+            }
+
+            this.nodes.push(reducerNode);
+          } else {
+            // The logic here is that if we specify a reducer in the body, and other reducer depends on it
+            // When we spread the body of that other reducer we also need to add it to its deps
+            if (fromReducerNode) {
+              const reducerNode = this.getReducerNode(fieldName);
+              if (
+                !fromReducerNode.dependencies.find((n) => n === reducerNode)
+              ) {
+                fromReducerNode.dependencies.push(reducerNode);
+              }
+            }
           }
 
           break;
@@ -533,17 +569,13 @@ export default class CollectionNode implements INode {
 
           return this.spread(expanderConfig);
         case NodeLinkType.FIELD:
-          this.addField(fieldName, fieldBody);
+          this.addField(fieldName, fieldBody, scheduleForDeletion);
           return;
-      }
-
-      if (childNode) {
-        this.nodes.push(childNode);
       }
     });
 
     // If by the end of parsing the body, we have no fields, we add one regardless
-    if (this.fieldNodes.length === 0) {
+    if (this.fieldNodes.length === 0 && !this.queryAllFields) {
       const fieldNode = new FieldNode("_id", {});
       this.nodes.push(fieldNode);
     }
@@ -555,8 +587,9 @@ export default class CollectionNode implements INode {
    *
    * @param fieldName
    * @param body
+   * @param scheduleForDeletion
    */
-  private addField(fieldName: string, body) {
+  private addField(fieldName: string, body, scheduleForDeletion = false) {
     if (fieldName.indexOf(".") > -1) {
       // transform 'profile.firstName': body => { "profile" : { "firstName": body } }
       const newBody = dot.object({ [fieldName]: body });
@@ -566,18 +599,27 @@ export default class CollectionNode implements INode {
 
     if (!this.hasField(fieldName)) {
       const fieldNode = new FieldNode(fieldName, body);
+      fieldNode.scheduledForDeletion = scheduleForDeletion;
 
       this.nodes.push(fieldNode);
     } else {
       // In case it contains some sub fields
       const fieldNode = this.getFirstLevelField(fieldName);
+
+      if (
+        scheduleForDeletion === false &&
+        fieldNode.scheduledForDeletion === true
+      ) {
+        fieldNode.scheduledForDeletion = false;
+      }
+
       if (FieldNode.canBodyRepresentAField(body)) {
         if (fieldNode.subfields.length > 0) {
           // We override it, so we include everything
           fieldNode.subfields = [];
         }
       } else {
-        fieldNode.spread(body);
+        fieldNode.spread(body, scheduleForDeletion);
       }
     }
   }
@@ -587,8 +629,45 @@ export default class CollectionNode implements INode {
       .filter((node) => !node.isSpread)
       .forEach((reducerNode) => {
         reducerNode.isSpread = true;
-        this.spread(reducerNode.dependency, reducerNode);
+        this.spread(reducerNode.dependency, reducerNode, true);
       });
+  }
+
+  /**
+   * After all data has been cleared up whe begin projection so the dataset is what matches the request body
+   */
+  public project() {
+    this.collectionNodes.forEach((collectionNode) => {
+      if (collectionNode.scheduledForDeletion) {
+        const field = collectionNode.name;
+        for (const result of this.results) {
+          delete result[field];
+        }
+      }
+    });
+    this.reducerNodes.forEach((reducerNode) => {
+      if (reducerNode.scheduledForDeletion) {
+        const field = reducerNode.name;
+        for (const result of this.results) {
+          delete result[field];
+        }
+      }
+    });
+
+    for (const key in this.body) {
+      if (this.hasCollectionNode(key)) {
+        const collectionNode = this.getCollectionNode(key);
+        collectionNode.project();
+      }
+    }
+
+    if (this.queryAllFields) {
+      return;
+    }
+
+    for (const field of this.fieldNodes) {
+      field.project(this.results);
+    }
   }
 
   public static getSchemaSerializer(resultSchema: ClassSchema) {

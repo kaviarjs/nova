@@ -1,18 +1,12 @@
 import * as _ from "lodash";
 import applyReducers from "./computeReducers";
 import CollectionNode from "../nodes/CollectionNode";
-import projectGraphToDataSet from "./projectGraphToDataSet";
 
 export default async (node: CollectionNode) => {
   storeOneResults(node, node.results);
   await applyReducers(node);
 
-  if (
-    node.queryAllFields === false ||
-    (node.queryAllFields === true && node.fieldNodes.length > 0)
-  ) {
-    node.results = projectGraphToDataSet(node.body, node.results);
-  }
+  node.project();
 };
 
 export function storeOneResults(node: CollectionNode, sameLevelResults: any[]) {

@@ -7,45 +7,12 @@ import { SPECIAL_PARAM_FIELD } from "../../constants";
 const PROJECTION_FIELDS = ["$filter"];
 
 export default class FieldNode implements INode {
-  /**
-   * We have fields like: 1, {}, { $: {...} }, { $filter: {...} }
-   * @param body
-   */
-  public static canBodyRepresentAField(body: any): boolean {
-    if (body === 1 || body === true) {
-      return true;
-    }
-
-    if (_.isObject(body)) {
-      if (FieldNode.isProjectionField(body)) {
-        return true;
-      }
-
-      const keys = Object.keys(body);
-
-      if (keys.length === 0) {
-        return true;
-      }
-
-      if (keys.length === 1 && body[SPECIAL_PARAM_FIELD]) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  public static isProjectionField(body: any) {
-    const keys = Object.keys(body);
-
-    return keys.length === 1 && PROJECTION_FIELDS.includes(keys[0]);
-  }
-
   public name: any;
   public projectionOperator: any;
   public body: number | QueryBodyType;
   public isProjectionField: boolean;
   public subfields: FieldNode[] = [];
+  public scheduledForDeletion: boolean = true;
 
   constructor(name: string, body?: number | QueryBodyType) {
     this.name = name;
@@ -60,12 +27,24 @@ export default class FieldNode implements INode {
     }
   }
 
-  public spread(body: any) {
+  public spread(body: any, scheduleForDeletion: boolean = false) {
     if (_.isObject(body)) {
       _.forEach(body, (fieldBody, fieldName) => {
         const fieldNode = new FieldNode(fieldName, fieldBody);
+        fieldNode.scheduledForDeletion = scheduleForDeletion;
 
         this.subfields.push(fieldNode);
+      });
+    }
+  }
+
+  public project(results: unknown[], parentPrefix: string = "") {
+    if (this.scheduledForDeletion) {
+      const name = parentPrefix + this.name;
+      results.forEach((result) => _.unset(result, parentPrefix + this.name));
+    } else {
+      this.subfields.forEach((subfield) => {
+        subfield.project(results, parentPrefix + this.name + ".");
       });
     }
   }
@@ -113,5 +92,39 @@ export default class FieldNode implements INode {
     });
 
     return object;
+  }
+
+  /**
+   * We have fields like: 1, {}, { $: {...} }, { $filter: {...} }
+   * @param body
+   */
+  public static canBodyRepresentAField(body: any): boolean {
+    if (body === 1 || body === true) {
+      return true;
+    }
+
+    if (_.isObject(body)) {
+      if (FieldNode.isProjectionField(body)) {
+        return true;
+      }
+
+      const keys = Object.keys(body);
+
+      if (keys.length === 0) {
+        return true;
+      }
+
+      if (keys.length === 1 && body[SPECIAL_PARAM_FIELD]) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  public static isProjectionField(body: any) {
+    const keys = Object.keys(body);
+
+    return keys.length === 1 && PROJECTION_FIELDS.includes(keys[0]);
   }
 }

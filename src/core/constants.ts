@@ -14,7 +14,12 @@ export const ALIAS_FIELD = "$alias";
 export const SCHEMA_FIELD = "$schema";
 export const ALL_FIELDS = "$all";
 
-export const SPECIAL_FIELDS = [SPECIAL_PARAM_FIELD, ALIAS_FIELD, SCHEMA_FIELD];
+export const SPECIAL_FIELDS = [
+  SPECIAL_PARAM_FIELD,
+  ALIAS_FIELD,
+  SCHEMA_FIELD,
+  ALL_FIELDS,
+];
 
 export const LINK_COLLECTION_OPTIONS_DEFAULTS: Partial<ILinkCollectionOptions> = {
   many: false,

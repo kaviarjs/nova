@@ -29,6 +29,7 @@ import {
   SCHEMA_BSON_LEFTOVER_SERIALIZER,
 } from "./constants";
 import { getBSONDecoder } from "@deepkit/bson";
+
 export function query<T>(
   collection: Collection,
   body: QueryBodyType,
@@ -50,6 +51,7 @@ export function clear(collection: Collection) {
   collection[LINK_STORAGE] = {};
   collection[REDUCER_STORAGE] = {};
   collection[EXPANDER_STORAGE] = {};
+  collection[SCHEMA_STORAGE] = null;
 }
 
 export function addSchema(collection: Collection, schema: ClassSchema) {
