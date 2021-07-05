@@ -60,7 +60,7 @@ const results = await query(Patients, {
   someNestedField: {
     someValue: 1,
   }
-  // This is the actual link
+  // This is the actual collection link
   medicalProfile: {
     // This is a field that belongs inside the MedicalProfile collection document
     bloodPresure: 1,
@@ -110,11 +110,11 @@ addLinks(Patients, {
 });
 ```
 
-### Examples
+### Relationship Types
 
-Let us explore all type of relationships that can exist:
+Let us explore all types of relationships that can exist:
 
-**A One-to-One B**
+#### A One-to-One B
 
 ```ts
 addLinks(A, {
@@ -132,7 +132,7 @@ addLinks(B, {
 });
 ```
 
-**A One-to-Many B**
+#### A One-to-Many B
 
 ```ts
 addLinks(A, {
@@ -149,7 +149,7 @@ addLinks(B, {
 });
 ```
 
-**A Many-to-Many B**
+#### A Many-to-Many B
 
 ```ts
 addLinks(A, {
@@ -167,7 +167,7 @@ addLinks(B, {
 });
 ```
 
-## Linking Shortcuts
+### Linking Shortcuts
 
 ```typescript
 import { oneToOne, oneToMany, manyToOne, manyToMany } from "@kaviar/nova";
@@ -206,7 +206,7 @@ Notes:
 - Field storage can be stored in a nested field. Specify `field: "profile.medicalProfileId"`
 - Indexes are automatically set. If you want custom indexes use `index: false` when defining the direct link.
 
-## Filtered Links
+### Filtered Links
 
 If you want to get the links and apply certain filters on it you could do it by specifying `filters` when defining the link:
 
@@ -257,6 +257,56 @@ addLinks(Users, {
     },
   },
 });
+```
+
+## Aliased Collections
+
+Sometimes you may find useful to fetch the same link but in different contexts, for example you want to get a Company with the last 3 invoices and with overdue invoices without much hassle:
+
+```typescript
+manyToOne(Invoices, Company, {
+  linkName: "company",
+  inversedLinkName: "invoices"
+});
+
+query(Company, {
+  lastInvoices: {
+    $alias: "invoices",
+    $: {
+      options: {
+        sort: { createdAt: -1 },
+        limit: 3
+      }
+    },
+    number: 1,
+  },
+  overdueInvoices: {
+    $alias: "invoices",
+    $: {
+      filters: {
+        isPaid: false,
+        paymentDue: { $lt: Date.now() }
+      }
+    }
+    number: 1,
+  }
+});
+```
+
+We currently don't offer a built-in way to handle these aliases, like an `addAlias()` function, we don't do that because in this realm it will depend a lot of your business logic and query-ing strategies. You could compose them something like this:
+
+```js
+const overdueInvoicesAlias = {
+  $alias: "invoices",
+  $: { filters: { '...' } }
+};
+
+query(Company, {
+  overdueInvoices: {
+    ...overdueInvoicesAlias,
+    number: 1,
+  }
+})
 ```
 
 ## Query-ing
@@ -443,11 +493,11 @@ query(Users, {
 });
 ```
 
-This comes with a penalty cost. Because the filters depend on the parent, we will have to query the database for each `user`. However, if you go deeper, when extracting `authors` it will do it in one query.
+This comes with a performance cost. Because the filters depend on the parent, we will have to query the database to get the comments once for every `user`.
 
 ## Reducers
 
-Reducers are a way to expand the request query and compute the values, then get you a cleaned version. Imagine them as virtual, on-demand computed query fields:
+Reducers are a way to expand the request query and compute the values. Imagine them as virtual, on-demand computed query fields:
 
 ```typescript
 import { addReducers } from "@kaviar/nova";
@@ -555,56 +605,6 @@ Notes:
 - Reducers can use other links and other reducers naturally.
 - Just be careful when extending the pipeline it may have unexpected results.
 - We recommend that you initially do not focus on performance, rather on code-clarity
-
-## Aliased Collections
-
-Sometimes you may find useful to fetch the same link but in different contexts, for example you want to get a Company with the last 3 invoices and with overdue invoices without much hassle:
-
-```typescript
-manyToOne(Invoices, Company, {
-  linkName: "company",
-  inversedLinkName: "invoices"
-});
-
-query(Company, {
-  lastInvoices: {
-    $alias: "invoices",
-    $: {
-      options: {
-        sort: { createdAt: -1 },
-        limit: 3
-      }
-    },
-    number: 1,
-  },
-  overdueInvoices: {
-    $alias: "invoices",
-    $: {
-      filters: {
-        isPaid: false,
-        paymentDue: { $lt: Date.now() }
-      }
-    }
-    number: 1,
-  }
-});
-```
-
-We currently don't offer a built-in way to handle these aliases, like an `addAlias()` function, we don't do that because in this realm it will depend a lot of your business logic and query-ing strategies. You could compose them something like this:
-
-```js
-const overdueInvoicesAlias = {
-  $alias: "invoices",
-  $: { filters: { '...' } }
-};
-
-query(Company, {
-  overdueInvoices: {
-    ...overdueInvoicesAlias,
-    number: 1,
-  }
-})
-```
 
 ## GraphQL Integration
 
@@ -904,7 +904,7 @@ const Query = {
 
 Deeper queries are run in parallel, make sure you have a connection `poolSize` of 10. This can be configured when creating your `MongoClient`. A larger `poolSize` might increase performance, but it can also decrease it.
 
-If you have a lot of nested fields, you also have the `$all: true` field at your disposal, sending out a large projection to MongoDB can sometimes make it slower than getting all the data. If you specify any collection fields and `$all: true`, all fields will be fetched, but your result will still be projected in the final result of the query.
+If you have a lot of nested fields, you also have the `$all: true` option at your disposal, sending out a large projection to MongoDB can sometimes make it slower than getting all the data. If you specify any collection fields and `$all: true`, all fields will be fetched, but your result will still be projected in the final result of the query.
 
 We can also benefit of extreme rapid BSON decoding through JIT compilers as long as we know not only the fields, but their type too. This is done with the help of [@deepkit/bson](https://github.com/deepkit/deepkit-framework/tree/master/packages/bson) and [@deepkit/type](https://deepkit.io/documentation/type).
 
