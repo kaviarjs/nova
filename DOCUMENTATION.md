@@ -684,7 +684,7 @@ query(Users, {
 
 ## Limitations
 
-### Limit/Skip in the nested collections
+#### Limit/Skip in the nested collections
 
 Let's take this post for example, we want to find all posts, then we want the latest 5 comments from each.
 
@@ -709,7 +709,7 @@ query(Posts, {
 
 Hypernova is not able to retrieve all comments for all posts in one-go (because of limit/skip). Therefore it has to do it iteratively for each found post. However, hypernova works afterwards when we need to fetch the authors of comments. It will fetch all authors in one-go, and properly assemble it.
 
-### Dynamic Filterings
+#### Dynamic Filterings
 
 When you are using a dynamic filter for your nested collections:
 
@@ -729,7 +729,7 @@ query(Posts, {
 
 Hypernova will be disabled, and it will run the query for fetching the comments for each individual Post. Because most likely your filters and options depend on it.
 
-### Top-level fields for linking information
+#### Top-level fields for linking information
 
 We allow storing link storages within nested objects such as:
 
@@ -784,7 +784,7 @@ query(Posts, {
 });
 ```
 
-### Counting Queries
+#### Counting Queries
 
 In a normal scenario, to retrieve this data graph we need to:
 
