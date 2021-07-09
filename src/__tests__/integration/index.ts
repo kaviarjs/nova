@@ -605,6 +605,30 @@ describe("Main tests", function () {
     assert.isUndefined(result.profile);
   });
 
+  it("[Reducers] Should work with reducers that have the same name", async () => {
+    addReducers(A, {
+      name: {
+        dependency: {
+          name: 1,
+        },
+        async reduce(obj, params) {
+          return `${obj.name} world!`;
+        },
+      },
+    });
+
+    const a1 = await A.insertOne({
+      name: "Hello",
+    });
+
+    const result: any = await query(A, {
+      _id: 1,
+      name: 1,
+    }).fetchOne();
+
+    assert.equal(`Hello world!`, result.name);
+  });
+
   it("[Reducers] Should work with context", async () => {
     addReducers(A, {
       fullName: {

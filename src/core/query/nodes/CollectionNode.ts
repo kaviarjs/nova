@@ -492,11 +492,19 @@ export default class CollectionNode implements INode {
         delete fieldBody[ALIAS_FIELD];
       }
 
-      const linkType = this.getLinkingType(alias);
+      let linkType = this.getLinkingType(alias);
 
       scheduleForDeletion = fromReducerNode
         ? true
         : Boolean(scheduleForDeletion);
+
+      /**
+       * This allows us to have reducer with the same name as the field
+       */
+      if (fromReducerNode && fromReducerNode.name === fieldName) {
+        linkType = NodeLinkType.FIELD;
+        scheduleForDeletion = false;
+      }
 
       switch (linkType) {
         case NodeLinkType.COLLECTION:
